@@ -1,6 +1,15 @@
 import UIKit
 
 enum ImageProcessor {
+    static func jpegDataForUpload(
+        from image: UIImage,
+        maxDimension: CGFloat = 1536,
+        compressionQuality: CGFloat = 0.82
+    ) -> Data? {
+        let resized = resize(image, maxDimension: maxDimension)
+        return resized.jpegData(compressionQuality: compressionQuality)
+    }
+
     static func pngDataForUpload(from image: UIImage, maxDimension: CGFloat = 1536) -> Data? {
         let resized = resize(image, maxDimension: maxDimension)
         return resized.pngData()

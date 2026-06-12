@@ -33,6 +33,8 @@
 		A10000010000000000000024 /* AuthRegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000024 /* AuthRegisterView.swift */; };
 		A10000010000000000000025 /* RoomsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000025 /* RoomsView.swift */; };
 		A10000010000000000000026 /* AddRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000026 /* AddRoomView.swift */; };
+		A10000010000000000000027 /* RoomDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000027 /* RoomDetailView.swift */; };
+		A10000010000000000000028 /* AuthenticatedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000028 /* AuthenticatedImage.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -62,6 +64,8 @@
 		A10000020000000000000024 /* AuthRegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRegisterView.swift; sourceTree = "<group>"; };
 		A10000020000000000000025 /* RoomsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomsView.swift; sourceTree = "<group>"; };
 		A10000020000000000000026 /* AddRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRoomView.swift; sourceTree = "<group>"; };
+		A10000020000000000000027 /* RoomDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomDetailView.swift; sourceTree = "<group>"; };
+		A10000020000000000000028 /* AuthenticatedImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedImage.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* Atelier.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atelier.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -119,6 +123,7 @@
 				A10000020000000000000024 /* AuthRegisterView.swift */,
 				A10000020000000000000025 /* RoomsView.swift */,
 				A10000020000000000000026 /* AddRoomView.swift */,
+				A10000020000000000000027 /* RoomDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -131,6 +136,7 @@
 				A10000020000000000000008 /* StyleCard.swift */,
 				A10000020000000000000018 /* BeforeAfterCompareView.swift */,
 				A10000020000000000000019 /* ShareSheet.swift */,
+				A10000020000000000000028 /* AuthenticatedImage.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -267,6 +273,8 @@
 				A10000010000000000000024 /* AuthRegisterView.swift in Sources */,
 				A10000010000000000000025 /* RoomsView.swift in Sources */,
 				A10000010000000000000026 /* AddRoomView.swift in Sources */,
+				A10000010000000000000027 /* RoomDetailView.swift in Sources */,
+				A10000010000000000000028 /* AuthenticatedImage.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

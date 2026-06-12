@@ -128,7 +128,7 @@ struct ResultsView: View {
             Button {
                 flow.startOver()
             } label: {
-                Text("Start over")
+                Text("Back to home")
                     .font(.system(size: 15))
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 10)

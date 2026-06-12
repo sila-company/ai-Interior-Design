@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Redirect, useRoute } from "wouter";
 
@@ -14,6 +15,7 @@ const statusMessages = [
 export function GeneratingPage() {
   const [, params] = useRoute("/rooms/:roomId/generating");
   const { room, selectedStyle, completeGeneration } = useAppFlow();
+  const queryClient = useQueryClient();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusText, setStatusText] = useState(statusMessages[0]);
   const [attempt, setAttempt] = useState(0);
@@ -34,6 +36,11 @@ export function GeneratingPage() {
       try {
         const result = await createRedesign(room.id, selectedStyle.id);
         if (cancelled) return;
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ["rooms"] }),
+          queryClient.invalidateQueries({ queryKey: ["redesigns"] }),
+          queryClient.invalidateQueries({ queryKey: ["room", room.id] }),
+        ]);
         completeGeneration(redesignToDataUrl(result));
       } catch (error) {
         if (cancelled) return;
@@ -56,6 +63,7 @@ export function GeneratingPage() {
     completeGeneration,
     errorMessage,
     params?.roomId,
+    queryClient,
   ]);
 
   if (!room || room.id !== params?.roomId || !selectedStyle) {

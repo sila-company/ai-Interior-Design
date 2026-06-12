@@ -9,16 +9,20 @@ import {
 import { useLocation } from "wouter";
 
 import type { DesignStyle } from "@/lib/styles";
-import type { Room } from "@/lib/api";
+import type { Redesign, Room } from "@/lib/api";
+import { enrichStyle, getStyleName } from "@/lib/styles";
 
 interface AppFlowState {
   room: Room | null;
   selectedStyle: DesignStyle | null;
   redesignedImageUrl: string | null;
+  savedRedesignId: string | null;
 }
 
 interface AppFlowContextValue extends AppFlowState {
-  beginWithRoom: (room: Room) => void;
+  openRoom: (room: Room) => void;
+  beginNewRedesign: (room: Room) => void;
+  viewSavedRedesign: (room: Room, redesign: Redesign) => void;
   selectStyle: (style: DesignStyle) => void;
   beginGeneration: () => void;
   completeGeneration: (imageUrl: string) => void;
@@ -32,20 +36,53 @@ const emptyState: AppFlowState = {
   room: null,
   selectedStyle: null,
   redesignedImageUrl: null,
+  savedRedesignId: null,
 };
 
 export function AppFlowProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const [state, setState] = useState<AppFlowState>(emptyState);
 
-  const beginWithRoom = useCallback(
+  const openRoom = useCallback(
     (room: Room) => {
       setState({
         room,
         selectedStyle: null,
         redesignedImageUrl: null,
+        savedRedesignId: null,
+      });
+      setLocation(`/rooms/${room.id}`);
+    },
+    [setLocation],
+  );
+
+  const beginNewRedesign = useCallback(
+    (room: Room) => {
+      setState({
+        room,
+        selectedStyle: null,
+        redesignedImageUrl: null,
+        savedRedesignId: null,
       });
       setLocation(`/rooms/${room.id}/style`);
+    },
+    [setLocation],
+  );
+
+  const viewSavedRedesign = useCallback(
+    (room: Room, redesign: Redesign) => {
+      setState({
+        room,
+        selectedStyle: enrichStyle({
+          id: redesign.styleId,
+          name: getStyleName(redesign.styleId),
+          description: "",
+          icon: "sparkles",
+        }),
+        redesignedImageUrl: redesign.resultImageUrl,
+        savedRedesignId: redesign.id,
+      });
+      setLocation(`/rooms/${room.id}/results`);
     },
     [setLocation],
   );
@@ -59,6 +96,7 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
         return {
           ...current,
           selectedStyle: style,
+          savedRedesignId: null,
         };
       });
     },
@@ -76,6 +114,7 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
       setState((current) => ({
         ...current,
         redesignedImageUrl: imageUrl,
+        savedRedesignId: null,
       }));
       if (state.room) {
         setLocation(`/rooms/${state.room.id}/results`);
@@ -89,6 +128,7 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
       ...current,
       selectedStyle: null,
       redesignedImageUrl: null,
+      savedRedesignId: null,
     }));
     if (state.room) {
       setLocation(`/rooms/${state.room.id}/style`);
@@ -103,7 +143,9 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
   const value = useMemo(
     () => ({
       ...state,
-      beginWithRoom,
+      openRoom,
+      beginNewRedesign,
+      viewSavedRedesign,
       selectStyle,
       beginGeneration,
       completeGeneration,
@@ -112,7 +154,9 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
     }),
     [
       state,
-      beginWithRoom,
+      openRoom,
+      beginNewRedesign,
+      viewSavedRedesign,
       selectStyle,
       beginGeneration,
       completeGeneration,

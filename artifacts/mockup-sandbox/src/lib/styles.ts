@@ -26,6 +26,19 @@ const iconMap: Record<string, LucideIcon> = {
   sparkles: Sparkles,
 };
 
+const styleNames: Record<string, string> = {
+  modern: "Modern",
+  cozy: "Cozy",
+  minimal: "Minimal",
+  scandinavian: "Scandinavian",
+  industrial: "Industrial",
+  luxe: "Luxe",
+};
+
+export function getStyleName(styleId: string): string {
+  return styleNames[styleId] ?? styleId;
+}
+
 export function enrichStyle(style: {
   id: string;
   name: string;

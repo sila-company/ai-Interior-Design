@@ -9,6 +9,7 @@ import { LandingPage } from "@/pages/LandingPage";
 import { LoginPage } from "@/pages/LoginPage";
 import { RegisterPage } from "@/pages/RegisterPage";
 import { ResultsPage } from "@/pages/ResultsPage";
+import { RoomDetailPage } from "@/pages/RoomDetailPage";
 import { RoomsPage } from "@/pages/RoomsPage";
 import { StyleSelectionPage } from "@/pages/StyleSelectionPage";
 import { SummaryPage } from "@/pages/SummaryPage";
@@ -24,6 +25,7 @@ export default function App() {
             <Route path="/register" component={RegisterPage} />
             <Route path="/rooms" component={RoomsPage} />
             <Route path="/rooms/new" component={AddRoomPage} />
+            <Route path="/rooms/:roomId" component={RoomDetailPage} />
             <Route path="/rooms/:roomId/style" component={StyleSelectionPage} />
             <Route path="/rooms/:roomId/summary" component={SummaryPage} />
             <Route path="/rooms/:roomId/generating" component={GeneratingPage} />

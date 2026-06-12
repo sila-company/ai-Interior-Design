@@ -6,7 +6,7 @@ import { useAppFlow } from "@/context/AppFlowContext";
 
 export function ResultsPage() {
   const [, params] = useRoute("/rooms/:roomId/results");
-  const { room, selectedStyle, redesignedImageUrl, tryAnotherStyle, startOver } =
+  const { room, selectedStyle, redesignedImageUrl, savedRedesignId, tryAnotherStyle, startOver } =
     useAppFlow();
 
   if (!room || room.id !== params?.roomId || !redesignedImageUrl) {
@@ -52,7 +52,9 @@ export function ResultsPage() {
           </h2>
           {selectedStyle ? (
             <p className="text-[17px] text-[#6E6E73]">
-              {selectedStyle.name} style saved to your account.
+              {savedRedesignId
+                ? `${selectedStyle.name} style — saved to your account.`
+                : `${selectedStyle.name} style saved to your account.`}
             </p>
           ) : null}
         </div>

@@ -37,6 +37,10 @@ export class ApiError extends Error {
 }
 
 async function parseError(response: Response): Promise<string> {
+  if (response.status === 413) {
+    return "Photo is too large. Try a smaller image.";
+  }
+
   try {
     const data = (await response.json()) as { message?: string };
     if (data.message) return data.message;
@@ -128,15 +132,54 @@ export async function listRooms(): Promise<Room[]> {
   return apiFetch("/api/rooms");
 }
 
+async function compressImageFile(
+  file: File,
+  maxDimension = 1536,
+  quality = 0.82,
+): Promise<File> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const width = Math.round(bitmap.width * scale);
+  const height = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Could not prepare the room photo for upload.");
+  }
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (nextBlob) =>
+        nextBlob
+          ? resolve(nextBlob)
+          : reject(new Error("Could not prepare the room photo for upload.")),
+      "image/jpeg",
+      quality,
+    );
+  });
+
+  const filename = file.name.replace(/\.[^.]+$/, "") || "room";
+  return new File([blob], `${filename}.jpg`, { type: "image/jpeg" });
+}
+
 export async function createRoom(name: string, image: File): Promise<Room> {
+  const compressed = await compressImageFile(image);
   const form = new FormData();
   form.append("name", name);
-  form.append("image", image);
+  form.append("image", compressed);
 
   return apiFetch("/api/rooms", {
     method: "POST",
     body: form,
   });
+}
+
+export async function listRedesigns(): Promise<Redesign[]> {
+  return apiFetch("/api/redesigns");
 }
 
 export async function getRoom(roomId: string): Promise<{

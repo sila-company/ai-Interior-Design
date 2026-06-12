@@ -5,6 +5,7 @@ enum AppRoute: Hashable {
     case register
     case rooms
     case addRoom
+    case roomDetail
     case styleSelection
     case summary
     case generating

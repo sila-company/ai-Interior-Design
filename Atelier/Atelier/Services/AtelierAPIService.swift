@@ -125,11 +125,40 @@ struct AtelierAPIService {
         return try rooms.map(mapRoom)
     }
 
+    func fetchRedesigns() async throws -> [SavedRedesign] {
+        let redesigns: [RedesignResponse] = try await sendJSON(
+            path: "api/redesigns",
+            method: "GET",
+            body: nil,
+            authorized: true,
+            decoder: [RedesignResponse].self
+        )
+
+        return try redesigns.map(mapRedesign)
+    }
+
+    func fetchRoomDetail(roomId: String) async throws -> (SavedRoom, [SavedRedesign]) {
+        struct RoomDetailResponse: Decodable {
+            let room: RoomResponse
+            let redesigns: [RedesignResponse]
+        }
+
+        let response: RoomDetailResponse = try await sendJSON(
+            path: "api/rooms/\(roomId)",
+            method: "GET",
+            body: nil,
+            authorized: true,
+            decoder: RoomDetailResponse.self
+        )
+
+        return (try mapRoom(response.room), try response.redesigns.map(mapRedesign))
+    }
+
     func createRoom(name: String, image: UIImage) async throws -> SavedRoom {
         guard let baseURL = APIConfiguration.apiBaseURL else {
             throw AtelierAPIServiceError.missingBaseURL
         }
-        guard let imageData = ImageProcessor.pngDataForUpload(from: image) else {
+        guard let imageData = ImageProcessor.jpegDataForUpload(from: image) else {
             throw AtelierAPIServiceError.invalidImage
         }
 
@@ -143,8 +172,8 @@ struct AtelierAPIService {
         body.append("Content-Disposition: form-data; name=\"name\"\(lineBreak)\(lineBreak)")
         body.append("\(name)\(lineBreak)")
         body.append("--\(boundary)\(lineBreak)")
-        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"room.png\"\(lineBreak)")
-        body.append("Content-Type: image/png\(lineBreak)\(lineBreak)")
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"room.jpg\"\(lineBreak)")
+        body.append("Content-Type: image/jpeg\(lineBreak)\(lineBreak)")
         body.append(imageData)
         body.append(lineBreak)
         body.append("--\(boundary)--\(lineBreak)")
@@ -185,6 +214,29 @@ struct AtelierAPIService {
             throw AtelierAPIServiceError.invalidResponse
         }
         return image
+    }
+
+    private func mapRedesign(_ redesign: RedesignResponse) throws -> SavedRedesign {
+        guard let resultURL = absoluteURL(from: redesign.resultImageUrl) else {
+            throw AtelierAPIServiceError.invalidResponse
+        }
+
+        let originalURL: URL
+        if let originalImageUrl = redesign.originalImageUrl,
+           let url = absoluteURL(from: originalImageUrl) {
+            originalURL = url
+        } else {
+            originalURL = resultURL
+        }
+
+        return SavedRedesign(
+            id: redesign.id,
+            roomId: redesign.roomId,
+            styleId: redesign.styleId,
+            mimeType: redesign.mimeType,
+            resultImageURL: resultURL,
+            originalImageURL: originalURL
+        )
     }
 
     private func mapRoom(_ room: RoomResponse) throws -> SavedRoom {
@@ -257,6 +309,12 @@ struct AtelierAPIService {
 
         if httpResponse.statusCode == 204, T.self == EmptyResponse.self {
             return EmptyResponse() as! T
+        }
+
+        if httpResponse.statusCode == 413 {
+            throw AtelierAPIServiceError.apiError(
+                "Photo is too large. Try a different image or take a new photo."
+            )
         }
 
         guard (200...299).contains(httpResponse.statusCode) else {

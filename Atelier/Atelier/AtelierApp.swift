@@ -35,6 +35,8 @@ struct AtelierApp: App {
                                 RoomsView()
                             case .addRoom:
                                 AddRoomView()
+                            case .roomDetail:
+                                RoomDetailView()
                             case .styleSelection:
                                 StyleSelectionView()
                             case .summary:

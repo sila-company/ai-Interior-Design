@@ -9,7 +9,7 @@ import { createRoom } from "@/lib/api";
 
 export function AddRoomPage() {
   const { user } = useAuth();
-  const { beginWithRoom } = useAppFlow();
+  const { beginNewRedesign } = useAppFlow();
   const [, setLocation] = useLocation();
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -75,7 +75,7 @@ export function AddRoomPage() {
             setIsSubmitting(true);
             setError(null);
             void createRoom(name.trim(), file)
-              .then((room) => beginWithRoom(room))
+              .then((room) => beginNewRedesign(room))
               .catch((err: unknown) => {
                 setError(err instanceof Error ? err.message : "Could not save room.");
                 setIsSubmitting(false);
