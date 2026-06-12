@@ -6,6 +6,8 @@
  * OpenAPI spec version: 0.2.0
  */
 
-export interface HealthStatus {
-  status: string;
+export interface RedesignResult {
+  styleId: string;
+  mimeType: string;
+  imageBase64: string;
 }

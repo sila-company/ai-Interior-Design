@@ -17,7 +17,7 @@
 		A10000010000000000000008 /* StyleCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000008 /* StyleCard.swift */; };
 		A10000010000000000000009 /* RedesignSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000009 /* RedesignSummaryView.swift */; };
 		A10000010000000000000010 /* APIConfiguration.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000010 /* APIConfiguration.swift */; };
-		A10000010000000000000011 /* OpenAIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000011 /* OpenAIService.swift */; };
+		A10000010000000000000011 /* AtelierAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000011 /* AtelierAPIService.swift */; };
 		A10000010000000000000012 /* ImageProcessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000012 /* ImageProcessor.swift */; };
 		A10000010000000000000013 /* GeneratingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000013 /* GeneratingView.swift */; };
 		A10000010000000000000014 /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000014 /* ResultsView.swift */; };
@@ -39,7 +39,7 @@
 		A10000020000000000000008 /* StyleCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StyleCard.swift; sourceTree = "<group>"; };
 		A10000020000000000000009 /* RedesignSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RedesignSummaryView.swift; sourceTree = "<group>"; };
 		A10000020000000000000010 /* APIConfiguration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIConfiguration.swift; sourceTree = "<group>"; };
-		A10000020000000000000011 /* OpenAIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OpenAIService.swift; sourceTree = "<group>"; };
+		A10000020000000000000011 /* AtelierAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AtelierAPIService.swift; sourceTree = "<group>"; };
 		A10000020000000000000012 /* ImageProcessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImageProcessor.swift; sourceTree = "<group>"; };
 		A10000020000000000000013 /* GeneratingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GeneratingView.swift; sourceTree = "<group>"; };
 		A10000020000000000000014 /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
@@ -139,7 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000020000000000000010 /* APIConfiguration.swift */,
-				A10000020000000000000011 /* OpenAIService.swift */,
+				A10000020000000000000011 /* AtelierAPIService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -231,7 +231,7 @@
 				A10000010000000000000008 /* StyleCard.swift in Sources */,
 				A10000010000000000000009 /* RedesignSummaryView.swift in Sources */,
 				A10000010000000000000010 /* APIConfiguration.swift in Sources */,
-				A10000010000000000000011 /* OpenAIService.swift in Sources */,
+				A10000010000000000000011 /* AtelierAPIService.swift in Sources */,
 				A10000010000000000000012 /* ImageProcessor.swift in Sources */,
 				A10000010000000000000013 /* GeneratingView.swift in Sources */,
 				A10000010000000000000014 /* ResultsView.swift in Sources */,

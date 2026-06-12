@@ -7,7 +7,7 @@ struct GeneratingView: View {
     @State private var statusText = "Analyzing your room…"
     @State private var hasStarted = false
 
-    private let service = OpenAIService()
+    private let service = AtelierAPIService()
     private let statusMessages = [
         "Analyzing your room…",
         "Applying your style…",

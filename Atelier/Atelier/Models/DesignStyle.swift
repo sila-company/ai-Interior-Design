@@ -15,15 +15,6 @@ struct DesignStyle: Identifiable, Equatable, Hashable {
         hasher.combine(id)
     }
 
-    var redesignPrompt: String {
-        """
-        Transform this interior room into a \(name.lowercased()) design. \(description) \
-        Preserve the room layout, walls, windows, doors, ceiling, floor plan, and camera perspective. \
-        Update furniture, materials, colors, lighting, textiles, and decor to match the style. \
-        Photorealistic interior design photograph with natural lighting.
-        """
-    }
-
     static let catalog: [DesignStyle] = [
         DesignStyle(
             id: "modern",

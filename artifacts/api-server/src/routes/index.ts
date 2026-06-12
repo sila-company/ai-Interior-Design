@@ -1,18 +1,12 @@
 import { Router, type IRouter } from "express";
 import healthRouter from "./health";
-import projectsRouter from "./projects";
-import userProfilesRouter from "./user-profiles";
-import furnitureItemsRouter from "./furniture-items";
-import cartItemsRouter from "./cart-items";
-import ordersRouter from "./orders";
+import stylesRouter from "./styles";
+import redesignsRouter from "./redesigns";
 
 const router: IRouter = Router();
 
 router.use(healthRouter);
-router.use("/projects", projectsRouter);
-router.use("/user-profiles", userProfilesRouter);
-router.use("/furniture-items", furnitureItemsRouter);
-router.use("/cart-items", cartItemsRouter);
-router.use("/orders", ordersRouter);
+router.use("/styles", stylesRouter);
+router.use("/redesigns", redesignsRouter);
 
 export default router;

@@ -2,24 +2,18 @@ openapi: 3.1.0
 info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
-  version: 0.1.0
-  description: Interior Design App API
+  version: 0.2.0
+  description: Atelier shared API for iOS, web, and Android clients
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
-  - name: projects
-    description: Room design projects
-  - name: userProfiles
-    description: User style profiles
-  - name: furnitureItems
-    description: Furniture catalog
-  - name: cartItems
-    description: Shopping cart
-  - name: orders
-    description: Checkout orders
+  - name: styles
+    description: Interior design styles
+  - name: redesigns
+    description: AI room redesign generation
 paths:
   /healthz:
     get:
@@ -34,128 +28,60 @@ paths:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
 
-  /projects:
-    post:
-      operationId: createProject
-      tags: [projects]
-      summary: Create a new room project from uploaded photo
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CreateProjectInput"
-      responses:
-        "201":
-          description: Project created
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/Project"
-
-  /user-profiles:
-    post:
-      operationId: saveUserProfile
-      tags: [userProfiles]
-      summary: Save user style quiz answers
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/UserProfileInput"
-      responses:
-        "201":
-          description: Profile saved
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/UserProfile"
-
-  /furniture-items:
+  /styles:
     get:
-      operationId: listFurnitureItems
-      tags: [furnitureItems]
-      summary: Get furniture recommendations
-      parameters:
-        - in: query
-          name: projectId
-          schema:
-            type: string
-          required: false
+      operationId: listDesignStyles
+      tags: [styles]
+      summary: List available interior design styles
       responses:
         "200":
-          description: List of furniture items
+          description: Design styles
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: "#/components/schemas/FurnitureItem"
+                  $ref: "#/components/schemas/DesignStyle"
 
-  /cart-items:
-    get:
-      operationId: listCartItems
-      tags: [cartItems]
-      summary: Get all cart items
-      responses:
-        "200":
-          description: Cart items list
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/CartItem"
+  /redesigns:
     post:
-      operationId: addCartItem
-      tags: [cartItems]
-      summary: Add item to cart
+      operationId: createRedesign
+      tags: [redesigns]
+      summary: Generate an AI room redesign from a photo and style
       requestBody:
         required: true
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: "#/components/schemas/AddCartItemInput"
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+                styleId:
+                  type: string
+              required:
+                - image
+                - styleId
       responses:
         "201":
-          description: Item added
+          description: Redesign generated
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CartItem"
-
-  /cart-items/{id}:
-    delete:
-      operationId: removeCartItem
-      tags: [cartItems]
-      summary: Remove item from cart
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Item removed
+                $ref: "#/components/schemas/RedesignResult"
+        "400":
+          description: Invalid request
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SuccessResponse"
-
-  /orders:
-    post:
-      operationId: createOrder
-      tags: [orders]
-      summary: Checkout all cart items
-      responses:
-        "201":
-          description: Order created
+                $ref: "#/components/schemas/ErrorResponse"
+        "502":
+          description: Upstream AI provider error
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/Order"
+                $ref: "#/components/schemas/ErrorResponse"
 
 components:
   schemas:
@@ -167,158 +93,41 @@ components:
       required:
         - status
 
-    CreateProjectInput:
-      type: object
-      properties:
-        photoUri:
-          type: string
-        roomType:
-          type: string
-      required:
-        - photoUri
-        - roomType
-
-    Project:
-      type: object
-      properties:
-        id:
-          type: string
-        photoUri:
-          type: string
-        roomType:
-          type: string
-        aiRoomImageUrl:
-          type: string
-        createdAt:
-          type: string
-      required:
-        - id
-        - photoUri
-        - roomType
-        - aiRoomImageUrl
-        - createdAt
-
-    UserProfileInput:
-      type: object
-      properties:
-        stylePreference:
-          type: string
-        colorPalette:
-          type: string
-        budget:
-          type: number
-        projectId:
-          type: string
-      required:
-        - stylePreference
-        - colorPalette
-        - budget
-        - projectId
-
-    UserProfile:
-      type: object
-      properties:
-        id:
-          type: string
-        stylePreference:
-          type: string
-        colorPalette:
-          type: string
-        budget:
-          type: number
-        projectId:
-          type: string
-        createdAt:
-          type: string
-      required:
-        - id
-        - stylePreference
-        - colorPalette
-        - budget
-        - projectId
-        - createdAt
-
-    FurnitureItem:
+    DesignStyle:
       type: object
       properties:
         id:
           type: string
         name:
           type: string
-        brand:
-          type: string
-        price:
-          type: number
-        imageUrl:
-          type: string
-        category:
-          type: string
         description:
           type: string
-        inStock:
-          type: boolean
+        icon:
+          type: string
       required:
         - id
         - name
-        - brand
-        - price
-        - imageUrl
-        - category
         - description
-        - inStock
+        - icon
 
-    AddCartItemInput:
+    RedesignResult:
       type: object
       properties:
-        furnitureItemId:
+        styleId:
           type: string
-        quantity:
-          type: number
+        mimeType:
+          type: string
+        imageBase64:
+          type: string
       required:
-        - furnitureItemId
-        - quantity
+        - styleId
+        - mimeType
+        - imageBase64
 
-    CartItem:
+    ErrorResponse:
       type: object
       properties:
-        id:
-          type: string
-        furnitureItemId:
-          type: string
-        quantity:
-          type: number
-        furnitureItem:
-          $ref: "#/components/schemas/FurnitureItem"
-      required:
-        - id
-        - furnitureItemId
-        - quantity
-        - furnitureItem
-
-    Order:
-      type: object
-      properties:
-        id:
-          type: string
-        status:
-          type: string
-        totalAmount:
-          type: number
-        itemCount:
-          type: number
-        createdAt:
+        message:
           type: string
       required:
-        - id
-        - status
-        - totalAmount
-        - itemCount
-        - createdAt
-
-    SuccessResponse:
-      type: object
-      properties:
-        success:
-          type: boolean
-      required:
-        - success
+        - message

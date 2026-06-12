@@ -48,14 +48,17 @@ Atelier/
 3. Your room photo appears in the preview card.
 4. Tap **Continue** to confirm and move to the next step.
 
-## OpenAI API key
+## API server
 
-1. Copy the example secrets file:
+The iOS app talks to the **Atelier API** (Node.js), not OpenAI directly.
+
+1. Start the backend — see [backend/README.md](../backend/README.md)
+2. Copy the example secrets file:
    ```bash
    cp Atelier/Config/Secrets.example.plist Atelier/Config/Secrets.plist
    ```
-2. Open `Atelier/Config/Secrets.plist` and replace `your-openai-api-key-here` with your OpenAI API key.
-3. `Secrets.plist` is gitignored — never commit API keys.
+3. Set `API_BASE_URL` to `http://127.0.0.1:5000` (simulator) or your Mac's IP (physical device).
+4. `Secrets.plist` is gitignored — never commit secrets.
 
 ## Full app flow
 
