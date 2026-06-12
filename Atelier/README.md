@@ -1,0 +1,71 @@
+# Atelier — iOS App
+
+Native SwiftUI iOS app for AI interior design.
+
+## Requirements
+
+- macOS with **Xcode 16+**
+- iOS 17+ (Simulator or physical iPhone)
+
+## Open in Xcode
+
+1. Open `Atelier.xcodeproj` in Xcode:
+   ```bash
+   open Atelier.xcodeproj
+   ```
+2. Select the **Atelier** scheme and an iPhone simulator (e.g. iPhone 16).
+3. Press **⌘R** to build and run.
+
+## First-time signing
+
+If Xcode asks you to sign the app:
+
+1. Select the **Atelier** project in the navigator.
+2. Select the **Atelier** target → **Signing & Capabilities**.
+3. Check **Automatically manage signing**.
+4. Choose your **Team** (your Apple ID works for Simulator and device testing).
+
+## Project structure
+
+```
+Atelier/
+├── Atelier.xcodeproj
+└── Atelier/
+    ├── AtelierApp.swift
+    ├── Components/
+    │   ├── AppBackground.swift
+    │   └── CameraPicker.swift
+    ├── Views/
+    │   ├── LandingView.swift
+    │   └── StyleSelectionView.swift
+    └── Assets.xcassets
+```
+
+## Photo upload flow
+
+1. Tap **Upload a room photo** or the preview card.
+2. Choose **Take Photo** (device only) or **Choose from Library**.
+3. Your room photo appears in the preview card.
+4. Tap **Continue** to confirm and move to the next step.
+
+## OpenAI API key
+
+1. Copy the example secrets file:
+   ```bash
+   cp Atelier/Config/Secrets.example.plist Atelier/Config/Secrets.plist
+   ```
+2. Open `Atelier/Config/Secrets.plist` and replace `your-openai-api-key-here` with your OpenAI API key.
+3. `Secrets.plist` is gitignored — never commit API keys.
+
+## Full app flow
+
+1. Upload a room photo.
+2. Choose a design style.
+3. Review on the summary screen, then tap **Generate redesign**.
+4. Wait for OpenAI to generate your redesign (usually 30–90 seconds).
+5. Compare **Before / After** and save to Photos.
+
+## What's next
+
+- Share sheet for redesigned images
+- Try another style without starting over
