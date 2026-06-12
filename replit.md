@@ -7,10 +7,9 @@ AI interior design: upload a room photo, pick a style, get an AI redesign.
 | Service | Package | Port | URL path |
 |---------|---------|------|----------|
 | **API** | `artifacts/api-server` | `8080` | `/api/*` |
-| **Web** | `artifacts/mockup-sandbox` | `8081` | `/` (main app — matches iOS) |
-| **Mobile** | `artifacts/mobile` (Expo, legacy) | `18115` | `/__expo` only |
+| **Web** | `artifacts/mockup-sandbox` | `8081` | `/` |
 
-In the Preview dropdown, choose **Atelier Web** — not "Atelier Mobile (legacy)".
+In the Preview dropdown, choose **Atelier Web**.
 
 ## Secrets (required)
 
@@ -20,15 +19,9 @@ Set in **Replit → Secrets**:
 |--------|---------|
 | `OPENAI_API_KEY` | API server — room redesign generation |
 
-Optional (legacy DB template only):
-
-| Secret | Used by |
-|--------|---------|
-| `DATABASE_URL` | `lib/db` — only pushed on git pull when set |
-
 ## After git pull
 
-`scripts/post-merge.sh` runs automatically and runs `pnpm install`. Postgres schema push runs only when `DATABASE_URL` is set.
+`scripts/post-merge.sh` runs automatically and runs `pnpm install`.
 
 ## Local commands (on Replit shell)
 
@@ -39,9 +32,6 @@ PORT=8080 pnpm --filter @workspace/api-server run dev
 # Web app (port 8081, site root)
 PORT=8081 BASE_PATH=/ API_PROXY_TARGET=http://127.0.0.1:8080 \
   pnpm --filter @workspace/mockup-sandbox run dev
-
-# Expo mobile
-pnpm --filter @workspace/mobile run dev
 ```
 
 ## Production deploy
@@ -57,12 +47,11 @@ Health check: `GET /api/healthz`
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
 - API: Express 5 + OpenAI `gpt-image-2`
-- Web: Vite + React (mobile-first, mirrors iOS app)
-- Mobile: Expo 54 + React Native (legacy prototype — not yet aligned with iOS)
+- Web: Vite + React (mobile-first, mirrors iOS)
 - iOS: native SwiftUI app in `Atelier/` (built in Xcode, not on Replit)
 
 ## Mac vs Replit
 
-`pnpm-workspace.yaml` keeps **linux-x64** binaries for Replit and **darwin** binaries for local Mac dev. Both environments should work after `pnpm install`.
+`pnpm-workspace.yaml` keeps **linux-x64** binaries for Replit and **darwin** binaries for local Mac dev.
 
 Local Mac defaults: API `5001`, web `5173`. Replit uses `8080` / `8081` via artifact env vars.

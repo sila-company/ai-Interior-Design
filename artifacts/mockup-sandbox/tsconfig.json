@@ -1,16 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "include": ["src/**/*", "vite.config.ts"],
-  "exclude": [
-    "node_modules",
-    "build",
-    "dist",
-    "**/*.test.ts",
-    "src/components/ui/**",
-    "src/components/mockups/**",
-    "src/.generated/**",
-    "src/hooks/**"
-  ],
+  "exclude": ["node_modules", "build", "dist", "**/*.test.ts"],
   "compilerOptions": {
     "incremental": true,
     "tsBuildInfoFile": ".tsbuildinfo",
