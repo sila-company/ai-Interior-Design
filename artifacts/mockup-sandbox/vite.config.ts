@@ -5,7 +5,11 @@ import path from "path";
 
 const port = Number(process.env.PORT ?? 5173);
 const basePath = process.env.BASE_PATH ?? "/";
-const apiTarget = process.env.API_PROXY_TARGET ?? "http://127.0.0.1:5001";
+
+// Replit routes the API artifact on :8080; local dev uses :5001.
+const apiTarget =
+  process.env.API_PROXY_TARGET ??
+  (process.env.REPL_ID ? "http://127.0.0.1:8080" : "http://127.0.0.1:5001");
 
 export default defineConfig({
   base: basePath,

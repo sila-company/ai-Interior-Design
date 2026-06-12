@@ -25,7 +25,11 @@ externalPort = 80
 
 [[ports]]
 localPort = 8081
+<<<<<<< HEAD
 externalPort = 8081
+=======
+externalPort = 3001
+>>>>>>> 313db8c43aa94f084389734babb417ade3520380
 
 [[ports]]
 localPort = 18115

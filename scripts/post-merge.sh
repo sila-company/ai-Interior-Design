@@ -1,4 +1,9 @@
 #!/bin/bash
-set -e
+set -euo pipefail
+
 pnpm install --frozen-lockfile
-pnpm --filter db push
+
+# Atelier API does not require Postgres; only push schema when configured.
+if [ -n "${DATABASE_URL:-}" ]; then
+  pnpm --filter @workspace/db run push
+fi
