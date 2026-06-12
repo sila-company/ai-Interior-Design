@@ -1,0 +1,32 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "fLN8ocnKfNDogjQ0eTDDw"
+uri = "file://artifacts/mobile/assets/images/icon.png"
+type = "image"
+title = "app icon interior design"
+
+[[generated]]
+id = "i7kxrBmXNP04TKVDyvz6Y"
+uri = "file://artifacts/mobile/assets/images/ai_room_preview.png"
+type = "image"
+title = "ai room render"
+
+[[generated]]
+id = "K51YVvAW4o78tSMYlX7pc"
+uri = "file://artifacts/mobile/assets/images/furniture_sofa.png"
+type = "image"
+title = "furniture sofa product"
+
+[[generated]]
+id = "2--ihhb-gwbK6LuULlWOd"
+uri = "file://artifacts/mobile/assets/images/furniture_table.png"
+type = "image"
+title = "furniture coffee table"
+
+[[generated]]
+id = "GvejXA_ryeL1q4nNDVM2r"
+uri = "file://artifacts/mobile/assets/images/furniture_lamp.png"
+type = "image"
+title = "furniture floor lamp"
