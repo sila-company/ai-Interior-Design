@@ -111,10 +111,12 @@
   --sidebar-border: 220 13% 91%;
   --sidebar-ring: 240 5.9% 10%;
 
-  --font-sans: 'Inter', sans-serif;
-  --font-serif: Georgia, serif;
-  --font-mono: Menlo, monospace;
-  --radius: .5rem;
+  --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+    "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-serif: "New York", "Iowan Old Style", "Apple Garamond", Baskerville,
+    "Times New Roman", serif;
+  --font-mono: "SF Mono", SFMono-Regular, ui-monospace, Menlo, monospace;
+  --radius: .75rem;
   --spacing: 0.25rem;
 }
 
@@ -165,8 +167,14 @@
   * {
     @apply border-border;
   }
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
   body {
-    @apply font-sans antialiased bg-background text-foreground;
+    @apply font-sans bg-background text-foreground;
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
   }
 }
 
