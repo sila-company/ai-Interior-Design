@@ -1,12 +1,11 @@
 import SwiftUI
 
 struct GeneratingView: View {
-    let roomImage: UIImage
-    let style: DesignStyle
+    @Environment(AppFlow.self) private var flow
 
-    @State private var redesignedImage: UIImage?
     @State private var errorMessage: String?
     @State private var statusText = "Analyzing your room…"
+    @State private var hasStarted = false
 
     private let service = OpenAIService()
     private let statusMessages = [
@@ -18,20 +17,16 @@ struct GeneratingView: View {
 
     var body: some View {
         Group {
-            if let redesignedImage {
-                ResultsView(
-                    originalImage: roomImage,
-                    redesignedImage: redesignedImage,
-                    style: style
-                )
-            } else if let errorMessage {
+            if let errorMessage {
                 errorView(message: errorMessage)
             } else {
                 loadingView
             }
         }
-        .navigationBarBackButtonHidden(redesignedImage == nil && errorMessage == nil)
+        .navigationBarBackButtonHidden(errorMessage == nil)
         .task {
+            guard !hasStarted else { return }
+            hasStarted = true
             await runGeneration()
         }
     }
@@ -63,15 +58,17 @@ struct GeneratingView: View {
                         .animation(.easeInOut, value: statusText)
                 }
 
-                HStack(spacing: 8) {
-                    Image(systemName: style.icon)
-                    Text(style.name)
+                if let style = flow.selectedStyle {
+                    HStack(spacing: 8) {
+                        Image(systemName: style.icon)
+                        Text(style.name)
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color(red: 0, green: 0.443, blue: 0.890))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Color(red: 0, green: 0.443, blue: 0.890).opacity(0.08), in: Capsule())
                 }
-                .font(.system(size: 14, weight: .medium))
-                .foregroundStyle(Color(red: 0, green: 0.443, blue: 0.890))
-                .padding(.horizontal, 14)
-                .padding(.vertical, 8)
-                .background(Color(red: 0, green: 0.443, blue: 0.890).opacity(0.08), in: Capsule())
             }
             .padding(32)
         }
@@ -96,8 +93,11 @@ struct GeneratingView: View {
 
                 Button {
                     errorMessage = nil
-                    redesignedImage = nil
-                    Task { await runGeneration() }
+                    hasStarted = false
+                    Task {
+                        hasStarted = true
+                        await runGeneration()
+                    }
                 } label: {
                     Text("Try again")
                         .font(.system(size: 15, weight: .medium))
@@ -116,8 +116,14 @@ struct GeneratingView: View {
     }
 
     private func runGeneration() async {
+        guard let roomImage = flow.roomImage, let style = flow.selectedStyle else {
+            await MainActor.run {
+                errorMessage = "Missing room photo or style."
+            }
+            return
+        }
+
         errorMessage = nil
-        redesignedImage = nil
 
         let rotationTask = Task {
             var index = 0
@@ -135,7 +141,7 @@ struct GeneratingView: View {
         do {
             let image = try await service.generateRedesign(roomImage: roomImage, style: style)
             await MainActor.run {
-                redesignedImage = image
+                flow.completeGeneration(with: image)
             }
         } catch {
             await MainActor.run {
@@ -146,7 +152,12 @@ struct GeneratingView: View {
 }
 
 #Preview {
-    NavigationStack {
-        GeneratingView(roomImage: UIImage(systemName: "photo")!, style: .catalog[0])
+    let flow = AppFlow()
+    flow.roomImage = UIImage(systemName: "photo")
+    flow.selectedStyle = .catalog[0]
+
+    return NavigationStack {
+        GeneratingView()
+            .environment(flow)
     }
 }

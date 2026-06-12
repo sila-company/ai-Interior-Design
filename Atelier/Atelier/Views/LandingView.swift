@@ -2,13 +2,14 @@ import PhotosUI
 import SwiftUI
 
 struct LandingView: View {
+    @Environment(AppFlow.self) private var flow
+
     @State private var appeared = false
     @State private var selectedImage: UIImage?
     @State private var photoPickerItem: PhotosPickerItem?
     @State private var showSourcePicker = false
     @State private var showPhotoPicker = false
     @State private var showCamera = false
-    @State private var navigateToStyleSelection = false
     @State private var isLoadingPhoto = false
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
@@ -74,9 +75,9 @@ struct LandingView: View {
             guard let newItem else { return }
             loadPhoto(from: newItem)
         }
-        .navigationDestination(isPresented: $navigateToStyleSelection) {
-            if let selectedImage {
-                StyleSelectionView(roomImage: selectedImage)
+        .onChange(of: flow.roomImage) { _, image in
+            if image == nil {
+                selectedImage = nil
             }
         }
     }
@@ -138,9 +139,9 @@ struct LandingView: View {
                 .foregroundStyle(.white)
                 .background(appleBlue, in: Capsule())
 
-                if selectedImage != nil {
+                if let selectedImage {
                     Button {
-                        navigateToStyleSelection = true
+                        flow.beginWithRoom(selectedImage)
                     } label: {
                         Text("Continue")
                             .font(.system(size: 15, weight: .medium))
@@ -248,5 +249,6 @@ struct LandingView: View {
 #Preview {
     NavigationStack {
         LandingView()
+            .environment(AppFlow())
     }
 }

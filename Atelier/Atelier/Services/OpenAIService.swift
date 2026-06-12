@@ -22,6 +22,9 @@ enum OpenAIServiceError: LocalizedError {
 }
 
 struct OpenAIService {
+    /// OpenAI's latest image model for high-fidelity edits (Image API).
+    private static let imageModel = "gpt-image-2"
+
     private let session: URLSession
 
     init(session: URLSession = .shared) {
@@ -97,9 +100,8 @@ struct OpenAIService {
             body.append("\(value)\(lineBreak)")
         }
 
-        appendField(name: "model", value: "gpt-image-1")
+        appendField(name: "model", value: Self.imageModel)
         appendField(name: "prompt", value: prompt)
-        appendField(name: "input_fidelity", value: "high")
         appendField(name: "quality", value: "high")
         appendField(name: "size", value: "auto")
         appendField(name: "output_format", value: "jpeg")

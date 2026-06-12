@@ -65,7 +65,9 @@ Atelier/
 4. Wait for OpenAI to generate your redesign (usually 30–90 seconds).
 5. Compare **Before / After** and save to Photos.
 
-## What's next
+## Results screen
 
-- Share sheet for redesigned images
-- Try another style without starting over
+- Drag the **before/after slider** to compare your original room with the redesign
+- **Save to Photos** or **Share redesign**
+- **Try another style** keeps your room photo and returns to style selection
+- **Start over** returns to the landing page

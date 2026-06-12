@@ -1,10 +1,7 @@
 import SwiftUI
 
 struct RedesignSummaryView: View {
-    let roomImage: UIImage
-    let style: DesignStyle
-
-    @State private var navigateToGenerating = false
+    @Environment(AppFlow.self) private var flow
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
     private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
@@ -18,57 +15,63 @@ struct RedesignSummaryView: View {
                     .tracking(-0.5)
                     .foregroundStyle(primaryText)
 
-                Text("We'll send your room photo to OpenAI and generate a \(style.name.lowercased()) redesign.")
-                    .font(.system(size: 17))
-                    .foregroundStyle(secondaryText)
-                    .lineSpacing(3)
+                if let style = flow.selectedStyle {
+                    Text("We'll send your room photo to OpenAI and generate a \(style.name.lowercased()) redesign.")
+                        .font(.system(size: 17))
+                        .foregroundStyle(secondaryText)
+                        .lineSpacing(3)
+                }
 
-                summaryCard(
-                    title: "Your room",
-                    content: {
-                        Image(uiImage: roomImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 180)
-                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-                    }
-                )
+                if let roomImage = flow.roomImage {
+                    summaryCard(
+                        title: "Your room",
+                        content: {
+                            Image(uiImage: roomImage)
+                                .resizable()
+                                .scaledToFill()
+                                .frame(height: 180)
+                                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                        }
+                    )
+                }
 
-                summaryCard(
-                    title: "Style",
-                    content: {
-                        HStack(spacing: 14) {
-                            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .fill(
-                                    LinearGradient(
-                                        colors: style.gradient,
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
+                if let style = flow.selectedStyle {
+                    summaryCard(
+                        title: "Style",
+                        content: {
+                            HStack(spacing: 14) {
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: style.gradient,
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
                                     )
-                                )
-                                .frame(width: 56, height: 56)
-                                .overlay {
-                                    Image(systemName: style.icon)
-                                        .font(.system(size: 22, weight: .light))
-                                        .foregroundStyle(primaryText.opacity(0.6))
+                                    .frame(width: 56, height: 56)
+                                    .overlay {
+                                        Image(systemName: style.icon)
+                                            .font(.system(size: 22, weight: .light))
+                                            .foregroundStyle(primaryText.opacity(0.6))
+                                    }
+
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(style.name)
+                                        .font(.system(size: 17, weight: .semibold))
+                                        .foregroundStyle(primaryText)
+
+                                    Text(style.description)
+                                        .font(.system(size: 14))
+                                        .foregroundStyle(secondaryText)
+                                        .fixedSize(horizontal: false, vertical: true)
                                 }
-
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(style.name)
-                                    .font(.system(size: 17, weight: .semibold))
-                                    .foregroundStyle(primaryText)
-
-                                Text(style.description)
-                                    .font(.system(size: 14))
-                                    .foregroundStyle(secondaryText)
-                                    .fixedSize(horizontal: false, vertical: true)
                             }
                         }
-                    }
-                )
+                    )
+                }
 
                 Button {
-                    navigateToGenerating = true
+                    flow.beginGeneration()
                 } label: {
                     Text("Generate redesign")
                         .font(.system(size: 15, weight: .medium))
@@ -85,9 +88,6 @@ struct RedesignSummaryView: View {
         .background(AppBackground())
         .navigationTitle("Summary")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(isPresented: $navigateToGenerating) {
-            GeneratingView(roomImage: roomImage, style: style)
-        }
     }
 
     @ViewBuilder
@@ -116,7 +116,12 @@ struct RedesignSummaryView: View {
 }
 
 #Preview {
-    NavigationStack {
-        RedesignSummaryView(roomImage: UIImage(systemName: "photo")!, style: .catalog[0])
+    let flow = AppFlow()
+    flow.roomImage = UIImage(systemName: "photo")
+    flow.selectedStyle = .catalog[0]
+
+    return NavigationStack {
+        RedesignSummaryView()
+            .environment(flow)
     }
 }

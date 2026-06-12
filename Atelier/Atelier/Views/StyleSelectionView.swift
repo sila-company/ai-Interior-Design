@@ -1,10 +1,9 @@
 import SwiftUI
 
 struct StyleSelectionView: View {
-    let roomImage: UIImage
+    @Environment(AppFlow.self) private var flow
 
     @State private var selectedStyle: DesignStyle?
-    @State private var navigateToSummary = false
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
     private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
@@ -57,20 +56,20 @@ struct StyleSelectionView: View {
         }
         .navigationTitle("Style")
         .navigationBarTitleDisplayMode(.inline)
-        .navigationDestination(isPresented: $navigateToSummary) {
-            if let selectedStyle {
-                RedesignSummaryView(roomImage: roomImage, style: selectedStyle)
-            }
+        .onAppear {
+            selectedStyle = nil
         }
     }
 
     private var roomThumbnail: some View {
         HStack(spacing: 14) {
-            Image(uiImage: roomImage)
-                .resizable()
-                .scaledToFill()
-                .frame(width: 64, height: 64)
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            if let roomImage = flow.roomImage {
+                Image(uiImage: roomImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: 64, height: 64)
+                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            }
 
             VStack(alignment: .leading, spacing: 4) {
                 Text("Your room")
@@ -98,7 +97,9 @@ struct StyleSelectionView: View {
                 .opacity(0.4)
 
             Button {
-                navigateToSummary = true
+                if let selectedStyle {
+                    flow.selectStyle(selectedStyle)
+                }
             } label: {
                 Text("Continue")
                     .font(.system(size: 15, weight: .medium))
@@ -121,7 +122,11 @@ struct StyleSelectionView: View {
 }
 
 #Preview {
-    NavigationStack {
-        StyleSelectionView(roomImage: UIImage(systemName: "photo")!)
+    let flow = AppFlow()
+    flow.roomImage = UIImage(systemName: "photo")
+
+    return NavigationStack {
+        StyleSelectionView()
+            .environment(flow)
     }
 }
