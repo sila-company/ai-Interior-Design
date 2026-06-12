@@ -1,45 +1,66 @@
-# [Project name]
+# Atelier — Replit
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+AI interior design: upload a room photo, pick a style, get an AI redesign.
 
-## Run & Operate
+## Replit services
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
-- `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
+| Service | Package | Port | URL path |
+|---------|---------|------|----------|
+| **API** | `artifacts/api-server` | `8080` | `/api/*` |
+| **Web** | `artifacts/mockup-sandbox` | `8081` | `/__mockup` |
+| **Mobile** | `artifacts/mobile` (Expo) | `18115` | Expo preview |
+
+## Secrets (required)
+
+Set in **Replit → Secrets**:
+
+| Secret | Used by |
+|--------|---------|
+| `OPENAI_API_KEY` | API server — room redesign generation |
+
+Optional (legacy DB template only):
+
+| Secret | Used by |
+|--------|---------|
+| `DATABASE_URL` | `lib/db` — only pushed on git pull when set |
+
+## After git pull
+
+`scripts/post-merge.sh` runs automatically and runs `pnpm install`. Postgres schema push runs only when `DATABASE_URL` is set.
+
+## Local commands (on Replit shell)
+
+```bash
+# API (port 8080)
+PORT=8080 pnpm --filter @workspace/api-server run dev
+
+# Web app (port 8081, base path /__mockup)
+PORT=8081 BASE_PATH=/__mockup API_PROXY_TARGET=http://127.0.0.1:8080 \
+  pnpm --filter @workspace/mockup-sandbox run dev
+
+# Expo mobile
+pnpm --filter @workspace/mobile run dev
+```
+
+## Production deploy
+
+Replit autoscale deploy builds and runs:
+
+- **API:** `pnpm --filter @workspace/api-server run build` → `node artifacts/api-server/dist/index.mjs`
+- **Web:** `pnpm --filter @workspace/mockup-sandbox run build` → `vite preview`
+
+Health check: `GET /api/healthz`
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- API: Express 5 + OpenAI `gpt-image-2`
+- Web: Vite + React (mobile-first, mirrors iOS app)
+- Mobile: Expo 54 + React Native (legacy prototype — not yet aligned with iOS)
+- iOS: native SwiftUI app in `Atelier/` (built in Xcode, not on Replit)
 
-## Where things live
+## Mac vs Replit
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+`pnpm-workspace.yaml` keeps **linux-x64** binaries for Replit and **darwin** binaries for local Mac dev. Both environments should work after `pnpm install`.
 
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
-
-## User preferences
-
-_Populate as you build — explicit user instructions worth remembering across sessions._
-
-## Gotchas
-
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+Local Mac defaults: API `5001`, web `5173`. Replit uses `8080` / `8081` via artifact env vars.
