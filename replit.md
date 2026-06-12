@@ -7,8 +7,10 @@ AI interior design: upload a room photo, pick a style, get an AI redesign.
 | Service | Package | Port | URL path |
 |---------|---------|------|----------|
 | **API** | `artifacts/api-server` | `8080` | `/api/*` |
-| **Web** | `artifacts/mockup-sandbox` | `8081` | `/__mockup` |
-| **Mobile** | `artifacts/mobile` (Expo) | `18115` | Expo preview |
+| **Web** | `artifacts/mockup-sandbox` | `8081` | `/` (main app — matches iOS) |
+| **Mobile** | `artifacts/mobile` (Expo, legacy) | `18115` | `/__expo` only |
+
+In the Preview dropdown, choose **Atelier Web** — not "Atelier Mobile (legacy)".
 
 ## Secrets (required)
 
@@ -34,8 +36,8 @@ Optional (legacy DB template only):
 # API (port 8080)
 PORT=8080 pnpm --filter @workspace/api-server run dev
 
-# Web app (port 8081, base path /__mockup)
-PORT=8081 BASE_PATH=/__mockup API_PROXY_TARGET=http://127.0.0.1:8080 \
+# Web app (port 8081, site root)
+PORT=8081 BASE_PATH=/ API_PROXY_TARGET=http://127.0.0.1:8080 \
   pnpm --filter @workspace/mockup-sandbox run dev
 
 # Expo mobile
