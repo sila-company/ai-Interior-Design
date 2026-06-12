@@ -15,6 +15,12 @@ struct RedesignSummaryView: View {
                     .tracking(-0.5)
                     .foregroundStyle(primaryText)
 
+                if let room = flow.room {
+                    Text(room.name)
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(secondaryText)
+                }
+
                 if let style = flow.selectedStyle {
                     Text("We'll send your room photo to OpenAI and generate a \(style.name.lowercased()) redesign.")
                         .font(.system(size: 17))

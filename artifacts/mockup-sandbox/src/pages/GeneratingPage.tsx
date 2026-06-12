@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Redirect } from "wouter";
+import { Redirect, useRoute } from "wouter";
 
 import { useAppFlow } from "@/context/AppFlowContext";
 import { createRedesign, redesignToDataUrl } from "@/lib/api";
@@ -12,13 +12,15 @@ const statusMessages = [
 ];
 
 export function GeneratingPage() {
-  const { roomImageFile, selectedStyle, completeGeneration } = useAppFlow();
+  const [, params] = useRoute("/rooms/:roomId/generating");
+  const { room, selectedStyle, completeGeneration } = useAppFlow();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [statusText, setStatusText] = useState(statusMessages[0]);
   const [attempt, setAttempt] = useState(0);
 
   useEffect(() => {
-    if (!roomImageFile || !selectedStyle || errorMessage) return;
+    if (!room || !selectedStyle || errorMessage) return;
+    if (room.id !== params?.roomId) return;
 
     let cancelled = false;
     let statusIndex = 0;
@@ -30,7 +32,7 @@ export function GeneratingPage() {
 
     void (async () => {
       try {
-        const result = await createRedesign(roomImageFile, selectedStyle.id);
+        const result = await createRedesign(room.id, selectedStyle.id);
         if (cancelled) return;
         completeGeneration(redesignToDataUrl(result));
       } catch (error) {
@@ -47,10 +49,17 @@ export function GeneratingPage() {
       cancelled = true;
       window.clearInterval(statusTimer);
     };
-  }, [attempt, roomImageFile, selectedStyle, completeGeneration, errorMessage]);
+  }, [
+    attempt,
+    room,
+    selectedStyle,
+    completeGeneration,
+    errorMessage,
+    params?.roomId,
+  ]);
 
-  if (!roomImageFile || !selectedStyle) {
-    return <Redirect to="/" />;
+  if (!room || room.id !== params?.roomId || !selectedStyle) {
+    return <Redirect to="/rooms" />;
   }
 
   if (errorMessage) {

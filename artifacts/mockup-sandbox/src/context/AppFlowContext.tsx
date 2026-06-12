@@ -9,16 +9,16 @@ import {
 import { useLocation } from "wouter";
 
 import type { DesignStyle } from "@/lib/styles";
+import type { Room } from "@/lib/api";
 
 interface AppFlowState {
-  roomImageUrl: string | null;
-  roomImageFile: File | null;
+  room: Room | null;
   selectedStyle: DesignStyle | null;
   redesignedImageUrl: string | null;
 }
 
 interface AppFlowContextValue extends AppFlowState {
-  beginWithRoom: (file: File, previewUrl: string) => void;
+  beginWithRoom: (room: Room) => void;
   selectStyle: (style: DesignStyle) => void;
   beginGeneration: () => void;
   completeGeneration: (imageUrl: string) => void;
@@ -29,8 +29,7 @@ interface AppFlowContextValue extends AppFlowState {
 const AppFlowContext = createContext<AppFlowContextValue | null>(null);
 
 const emptyState: AppFlowState = {
-  roomImageUrl: null,
-  roomImageFile: null,
+  room: null,
   selectedStyle: null,
   redesignedImageUrl: null,
 };
@@ -40,32 +39,37 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AppFlowState>(emptyState);
 
   const beginWithRoom = useCallback(
-    (file: File, previewUrl: string) => {
+    (room: Room) => {
       setState({
-        roomImageUrl: previewUrl,
-        roomImageFile: file,
+        room,
         selectedStyle: null,
         redesignedImageUrl: null,
       });
-      setLocation("/style");
+      setLocation(`/rooms/${room.id}/style`);
     },
     [setLocation],
   );
 
   const selectStyle = useCallback(
     (style: DesignStyle) => {
-      setState((current) => ({
-        ...current,
-        selectedStyle: style,
-      }));
-      setLocation("/summary");
+      setState((current) => {
+        if (current.room) {
+          setLocation(`/rooms/${current.room.id}/summary`);
+        }
+        return {
+          ...current,
+          selectedStyle: style,
+        };
+      });
     },
     [setLocation],
   );
 
   const beginGeneration = useCallback(() => {
-    setLocation("/generating");
-  }, [setLocation]);
+    if (state.room) {
+      setLocation(`/rooms/${state.room.id}/generating`);
+    }
+  }, [setLocation, state.room]);
 
   const completeGeneration = useCallback(
     (imageUrl: string) => {
@@ -73,9 +77,11 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
         ...current,
         redesignedImageUrl: imageUrl,
       }));
-      setLocation("/results");
+      if (state.room) {
+        setLocation(`/rooms/${state.room.id}/results`);
+      }
     },
-    [setLocation],
+    [setLocation, state.room],
   );
 
   const tryAnotherStyle = useCallback(() => {
@@ -84,19 +90,15 @@ export function AppFlowProvider({ children }: { children: ReactNode }) {
       selectedStyle: null,
       redesignedImageUrl: null,
     }));
-    setLocation("/style");
-  }, [setLocation]);
+    if (state.room) {
+      setLocation(`/rooms/${state.room.id}/style`);
+    }
+  }, [setLocation, state.room]);
 
   const startOver = useCallback(() => {
-    if (state.roomImageUrl) {
-      URL.revokeObjectURL(state.roomImageUrl);
-    }
-    if (state.redesignedImageUrl?.startsWith("blob:")) {
-      URL.revokeObjectURL(state.redesignedImageUrl);
-    }
     setState(emptyState);
-    setLocation("/");
-  }, [setLocation, state.redesignedImageUrl, state.roomImageUrl]);
+    setLocation("/rooms");
+  }, [setLocation]);
 
   const value = useMemo(
     () => ({

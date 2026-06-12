@@ -18,10 +18,12 @@ Set in **Replit → Secrets**:
 | Secret | Used by |
 |--------|---------|
 | `OPENAI_API_KEY` | API server — room redesign generation |
+| `DATABASE_URL` | Postgres — users, rooms, saved redesigns |
+| `JWT_SECRET` | API server — auth tokens (long random string) |
 
 ## After git pull
 
-`scripts/post-merge.sh` runs automatically and runs `pnpm install`.
+`scripts/post-merge.sh` runs automatically: `pnpm install`, then `drizzle-kit push` when `DATABASE_URL` is set.
 
 ## Local commands (on Replit shell)
 
@@ -43,10 +45,25 @@ Replit autoscale deploy builds and runs:
 
 Health check: `GET /api/healthz`
 
+## API routes
+
+| Route | Purpose |
+|-------|---------|
+| `GET /api/healthz` | Health check |
+| `GET /api/styles` | Design style catalog |
+| `POST /api/auth/register` | Create account |
+| `POST /api/auth/login` | Sign in |
+| `POST /api/auth/logout` | Sign out |
+| `GET /api/auth/me` | Current user |
+| `GET/POST /api/rooms` | List / create named rooms |
+| `GET/PATCH/DELETE /api/rooms/:id` | Room detail, rename, delete |
+| `POST /api/redesigns` | Generate redesign for a saved room |
+| `GET /api/uploads/*` | Serve stored images (auth-gated) |
+
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5 + OpenAI `gpt-image-2`
+- API: Express 5 + Postgres (Drizzle) + OpenAI `gpt-image-2`
 - Web: Vite + React (mobile-first, mirrors iOS)
 - iOS: native SwiftUI app in `Atelier/` (built in Xcode, not on Replit)
 

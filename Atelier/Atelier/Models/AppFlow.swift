@@ -5,11 +5,13 @@ import UIKit
 @MainActor
 final class AppFlow {
     var path = NavigationPath()
+    var room: SavedRoom?
     var roomImage: UIImage?
     var selectedStyle: DesignStyle?
     var redesignedImage: UIImage?
 
-    func beginWithRoom(_ image: UIImage) {
+    func beginWithRoom(_ room: SavedRoom, image: UIImage) {
+        self.room = room
         roomImage = image
         selectedStyle = nil
         redesignedImage = nil
@@ -39,6 +41,7 @@ final class AppFlow {
     }
 
     func startOver() {
+        room = nil
         roomImage = nil
         selectedStyle = nil
         redesignedImage = nil

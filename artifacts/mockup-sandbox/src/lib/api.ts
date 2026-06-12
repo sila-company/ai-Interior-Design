@@ -1,9 +1,29 @@
+import { clearAuthToken, getAuthToken } from "./auth-storage";
 import { enrichStyle, type DesignStyle } from "./styles";
 
-export interface RedesignResult {
+export interface User {
+  id: string;
+  email: string;
+  name: string;
+}
+
+export interface Room {
+  id: string;
+  name: string;
+  originalImageUrl: string;
+  createdAt: string;
+  redesignCount: number;
+}
+
+export interface Redesign {
+  id: string;
+  roomId: string;
   styleId: string;
   mimeType: string;
-  imageBase64: string;
+  resultImageUrl: string;
+  originalImageUrl?: string;
+  imageBase64?: string;
+  createdAt: string;
 }
 
 export class ApiError extends Error {
@@ -26,42 +46,119 @@ async function parseError(response: Response): Promise<string> {
   return `Request failed (${response.status})`;
 }
 
-export async function listDesignStyles(): Promise<DesignStyle[]> {
-  const response = await fetch("/api/styles");
+async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
+  const headers = new Headers(init.headers);
+  const token = getAuthToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
+
+  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
+    headers.set("Content-Type", "application/json");
+  }
+
+  const response = await fetch(path, {
+    ...init,
+    headers,
+    credentials: "include",
+  });
+
+  if (response.status === 401) {
+    clearAuthToken();
+  }
+
   if (!response.ok) {
     throw new ApiError(await parseError(response), response.status);
   }
 
-  const styles = (await response.json()) as Array<{
-    id: string;
-    name: string;
-    description: string;
-    icon: string;
-  }>;
+  if (response.status === 204) {
+    return undefined as T;
+  }
+
+  return (await response.json()) as T;
+}
+
+export async function register(
+  email: string,
+  password: string,
+  name: string,
+): Promise<{ token: string; user: User }> {
+  return apiFetch("/api/auth/register", {
+    method: "POST",
+    body: JSON.stringify({ email, password, name }),
+  });
+}
+
+export async function login(
+  email: string,
+  password: string,
+): Promise<{ token: string; user: User }> {
+  return apiFetch("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ email, password }),
+  });
+}
+
+export async function logout(): Promise<void> {
+  await apiFetch("/api/auth/logout", { method: "POST" });
+  clearAuthToken();
+}
+
+export async function getMe(): Promise<{ user: User }> {
+  return apiFetch("/api/auth/me");
+}
+
+export async function listDesignStyles(): Promise<DesignStyle[]> {
+  const styles = await apiFetch<
+    Array<{
+      id: string;
+      name: string;
+      description: string;
+      icon: string;
+    }>
+  >("/api/styles");
 
   return styles.map(enrichStyle);
 }
 
-export async function createRedesign(
-  image: File,
-  styleId: string,
-): Promise<RedesignResult> {
-  const form = new FormData();
-  form.append("image", image);
-  form.append("styleId", styleId);
+export async function listRooms(): Promise<Room[]> {
+  return apiFetch("/api/rooms");
+}
 
-  const response = await fetch("/api/redesigns", {
+export async function createRoom(name: string, image: File): Promise<Room> {
+  const form = new FormData();
+  form.append("name", name);
+  form.append("image", image);
+
+  return apiFetch("/api/rooms", {
     method: "POST",
     body: form,
   });
-
-  if (!response.ok) {
-    throw new ApiError(await parseError(response), response.status);
-  }
-
-  return (await response.json()) as RedesignResult;
 }
 
-export function redesignToDataUrl(result: RedesignResult): string {
-  return `data:${result.mimeType};base64,${result.imageBase64}`;
+export async function getRoom(roomId: string): Promise<{
+  room: Room;
+  redesigns: Redesign[];
+}> {
+  return apiFetch(`/api/rooms/${roomId}`);
+}
+
+export async function createRedesign(
+  roomId: string,
+  styleId: string,
+): Promise<Redesign> {
+  return apiFetch("/api/redesigns", {
+    method: "POST",
+    body: JSON.stringify({ roomId, styleId }),
+  });
+}
+
+export function redesignToDataUrl(redesign: Redesign): string {
+  if (redesign.imageBase64) {
+    return `data:${redesign.mimeType};base64,${redesign.imageBase64}`;
+  }
+  return redesign.resultImageUrl;
 }

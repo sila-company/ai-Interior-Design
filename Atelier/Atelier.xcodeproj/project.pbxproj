@@ -26,6 +26,13 @@
 		A10000010000000000000017 /* AppFlow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000017 /* AppFlow.swift */; };
 		A10000010000000000000018 /* BeforeAfterCompareView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000018 /* BeforeAfterCompareView.swift */; };
 		A10000010000000000000019 /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000019 /* ShareSheet.swift */; };
+		A10000010000000000000020 /* SavedRoom.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000020 /* SavedRoom.swift */; };
+		A10000010000000000000021 /* KeychainStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000021 /* KeychainStore.swift */; };
+		A10000010000000000000022 /* AuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000022 /* AuthManager.swift */; };
+		A10000010000000000000023 /* AuthLoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000023 /* AuthLoginView.swift */; };
+		A10000010000000000000024 /* AuthRegisterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000024 /* AuthRegisterView.swift */; };
+		A10000010000000000000025 /* RoomsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000025 /* RoomsView.swift */; };
+		A10000010000000000000026 /* AddRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000026 /* AddRoomView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -48,6 +55,13 @@
 		A10000020000000000000017 /* AppFlow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFlow.swift; sourceTree = "<group>"; };
 		A10000020000000000000018 /* BeforeAfterCompareView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BeforeAfterCompareView.swift; sourceTree = "<group>"; };
 		A10000020000000000000019 /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
+		A10000020000000000000020 /* SavedRoom.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedRoom.swift; sourceTree = "<group>"; };
+		A10000020000000000000021 /* KeychainStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainStore.swift; sourceTree = "<group>"; };
+		A10000020000000000000022 /* AuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthManager.swift; sourceTree = "<group>"; };
+		A10000020000000000000023 /* AuthLoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLoginView.swift; sourceTree = "<group>"; };
+		A10000020000000000000024 /* AuthRegisterView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthRegisterView.swift; sourceTree = "<group>"; };
+		A10000020000000000000025 /* RoomsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomsView.swift; sourceTree = "<group>"; };
+		A10000020000000000000026 /* AddRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRoomView.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* Atelier.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atelier.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -101,6 +115,10 @@
 				A10000020000000000000009 /* RedesignSummaryView.swift */,
 				A10000020000000000000013 /* GeneratingView.swift */,
 				A10000020000000000000014 /* ResultsView.swift */,
+				A10000020000000000000023 /* AuthLoginView.swift */,
+				A10000020000000000000024 /* AuthRegisterView.swift */,
+				A10000020000000000000025 /* RoomsView.swift */,
+				A10000020000000000000026 /* AddRoomView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -123,6 +141,7 @@
 				A10000020000000000000007 /* DesignStyle.swift */,
 				A10000020000000000000016 /* AppRoute.swift */,
 				A10000020000000000000017 /* AppFlow.swift */,
+				A10000020000000000000020 /* SavedRoom.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -140,6 +159,8 @@
 			children = (
 				A10000020000000000000010 /* APIConfiguration.swift */,
 				A10000020000000000000011 /* AtelierAPIService.swift */,
+				A10000020000000000000021 /* KeychainStore.swift */,
+				A10000020000000000000022 /* AuthManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -239,6 +260,13 @@
 				A10000010000000000000017 /* AppFlow.swift in Sources */,
 				A10000010000000000000018 /* BeforeAfterCompareView.swift in Sources */,
 				A10000010000000000000019 /* ShareSheet.swift in Sources */,
+				A10000010000000000000020 /* SavedRoom.swift in Sources */,
+				A10000010000000000000021 /* KeychainStore.swift in Sources */,
+				A10000010000000000000022 /* AuthManager.swift in Sources */,
+				A10000010000000000000023 /* AuthLoginView.swift in Sources */,
+				A10000010000000000000024 /* AuthRegisterView.swift in Sources */,
+				A10000010000000000000025 /* RoomsView.swift in Sources */,
+				A10000010000000000000026 /* AddRoomView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

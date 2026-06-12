@@ -116,9 +116,9 @@ struct GeneratingView: View {
     }
 
     private func runGeneration() async {
-        guard let roomImage = flow.roomImage, let style = flow.selectedStyle else {
+        guard let room = flow.room, let style = flow.selectedStyle else {
             await MainActor.run {
-                errorMessage = "Missing room photo or style."
+                errorMessage = "Missing room or style."
             }
             return
         }
@@ -139,7 +139,7 @@ struct GeneratingView: View {
         defer { rotationTask.cancel() }
 
         do {
-            let image = try await service.generateRedesign(roomImage: roomImage, style: style)
+            let image = try await service.generateRedesign(roomId: room.id, style: style)
             await MainActor.run {
                 flow.completeGeneration(with: image)
             }

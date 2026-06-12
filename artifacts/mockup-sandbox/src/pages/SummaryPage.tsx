@@ -1,32 +1,33 @@
-import { Redirect } from "wouter";
+import { Redirect, useRoute } from "wouter";
 
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { useAppFlow } from "@/context/AppFlowContext";
 
 export function SummaryPage() {
-  const { roomImageUrl, selectedStyle, beginGeneration } = useAppFlow();
+  const [, params] = useRoute("/rooms/:roomId/summary");
+  const { room, selectedStyle, beginGeneration } = useAppFlow();
 
-  if (!roomImageUrl) {
-    return <Redirect to="/" />;
+  if (!room || room.id !== params?.roomId) {
+    return <Redirect to="/rooms" />;
   }
 
   if (!selectedStyle) {
-    return <Redirect to="/style" />;
+    return <Redirect to={`/rooms/${room.id}/style`} />;
   }
 
   const Icon = selectedStyle.Icon;
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <MobileNavBar title="Summary" backTo="/style" />
+      <MobileNavBar title="Summary" backTo={`/rooms/${room.id}/style`} />
 
       <div className="flex-1 overflow-y-auto px-6 py-6">
         <h2 className="mb-2 text-[28px] font-semibold tracking-[-0.03em] text-[#1D1D1F]">
           Ready to redesign
         </h2>
         <p className="mb-6 text-[17px] leading-7 text-[#6E6E73]">
-          We&apos;ll send your room photo to OpenAI and generate a{" "}
-          {selectedStyle.name.toLowerCase()} redesign.
+          We&apos;ll redesign <strong>{room.name}</strong> in a{" "}
+          {selectedStyle.name.toLowerCase()} style and save it to your account.
         </p>
 
         <section className="mb-4 rounded-[20px] border border-black/[0.06] bg-white p-4 shadow-[0_6px_12px_rgba(0,0,0,0.05)]">
@@ -34,8 +35,8 @@ export function SummaryPage() {
             Your room
           </p>
           <img
-            src={roomImageUrl}
-            alt="Your room"
+            src={room.originalImageUrl}
+            alt={room.name}
             className="h-[180px] w-full rounded-2xl object-cover"
           />
         </section>

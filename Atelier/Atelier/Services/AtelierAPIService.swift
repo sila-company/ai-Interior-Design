@@ -21,6 +21,36 @@ enum AtelierAPIServiceError: LocalizedError {
     }
 }
 
+struct AuthResponse: Decodable {
+    let token: String
+    let user: AuthUserResponse
+}
+
+struct AuthUserResponse: Decodable {
+    let id: String
+    let email: String
+    let name: String
+}
+
+struct RoomResponse: Decodable {
+    let id: String
+    let name: String
+    let originalImageUrl: String
+    let createdAt: String
+    let redesignCount: Int
+}
+
+struct RedesignResponse: Decodable {
+    let id: String
+    let roomId: String
+    let styleId: String
+    let mimeType: String
+    let resultImageUrl: String
+    let originalImageUrl: String?
+    let imageBase64: String?
+    let createdAt: String
+}
+
 struct AtelierAPIService {
     private let session: URLSession
 
@@ -28,34 +58,208 @@ struct AtelierAPIService {
         self.session = session
     }
 
-    func generateRedesign(roomImage: UIImage, style: DesignStyle) async throws -> UIImage {
+    func register(name: String, email: String, password: String) async throws -> AuthResponse {
+        let body = try JSONSerialization.data(withJSONObject: [
+            "name": name,
+            "email": email,
+            "password": password,
+        ])
+        return try await sendJSON(
+            path: "api/auth/register",
+            method: "POST",
+            body: body,
+            authorized: false,
+            decoder: AuthResponse.self
+        )
+    }
+
+    func login(email: String, password: String) async throws -> AuthResponse {
+        let body = try JSONSerialization.data(withJSONObject: [
+            "email": email,
+            "password": password,
+        ])
+        return try await sendJSON(
+            path: "api/auth/login",
+            method: "POST",
+            body: body,
+            authorized: false,
+            decoder: AuthResponse.self
+        )
+    }
+
+    func logout() async throws {
+        _ = try await sendJSON(
+            path: "api/auth/logout",
+            method: "POST",
+            body: nil,
+            authorized: true,
+            decoder: EmptyResponse.self
+        )
+    }
+
+    func fetchCurrentUser() async throws -> AuthUser {
+        struct MeResponse: Decodable {
+            let user: AuthUserResponse
+        }
+
+        let response: MeResponse = try await sendJSON(
+            path: "api/auth/me",
+            method: "GET",
+            body: nil,
+            authorized: true,
+            decoder: MeResponse.self
+        )
+
+        return AuthUser(id: response.user.id, email: response.user.email, name: response.user.name)
+    }
+
+    func fetchRooms() async throws -> [SavedRoom] {
+        let rooms: [RoomResponse] = try await sendJSON(
+            path: "api/rooms",
+            method: "GET",
+            body: nil,
+            authorized: true,
+            decoder: [RoomResponse].self
+        )
+
+        return try rooms.map(mapRoom)
+    }
+
+    func createRoom(name: String, image: UIImage) async throws -> SavedRoom {
+        guard let baseURL = APIConfiguration.apiBaseURL else {
+            throw AtelierAPIServiceError.missingBaseURL
+        }
+        guard let imageData = ImageProcessor.pngDataForUpload(from: image) else {
+            throw AtelierAPIServiceError.invalidImage
+        }
+
+        let boundary = "Boundary-\(UUID().uuidString)"
+        var request = authorizedRequest(url: baseURL.appending(path: "api/rooms"), method: "POST")
+        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        let lineBreak = "\r\n"
+        body.append("--\(boundary)\(lineBreak)")
+        body.append("Content-Disposition: form-data; name=\"name\"\(lineBreak)\(lineBreak)")
+        body.append("\(name)\(lineBreak)")
+        body.append("--\(boundary)\(lineBreak)")
+        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"room.png\"\(lineBreak)")
+        body.append("Content-Type: image/png\(lineBreak)\(lineBreak)")
+        body.append(imageData)
+        body.append(lineBreak)
+        body.append("--\(boundary)--\(lineBreak)")
+        request.httpBody = body
+
+        let response: RoomResponse = try await perform(request, decoder: RoomResponse.self)
+        return try mapRoom(response)
+    }
+
+    func generateRedesign(roomId: String, style: DesignStyle) async throws -> UIImage {
+        let body = try JSONSerialization.data(withJSONObject: [
+            "roomId": roomId,
+            "styleId": style.id,
+        ])
+
+        let response: RedesignResponse = try await sendJSON(
+            path: "api/redesigns",
+            method: "POST",
+            body: body,
+            authorized: true,
+            decoder: RedesignResponse.self
+        )
+
+        if let imageBase64 = response.imageBase64,
+           let imageData = Data(base64Encoded: imageBase64),
+           let image = UIImage(data: imageData) {
+            return image
+        }
+
+        guard let url = absoluteURL(from: response.resultImageUrl) else {
+            throw AtelierAPIServiceError.invalidResponse
+        }
+
+        let request = authorizedRequest(url: url, method: "GET")
+        let (data, httpResponse) = try await session.data(for: request)
+        guard let http = httpResponse as? HTTPURLResponse, http.statusCode == 200,
+              let image = UIImage(data: data) else {
+            throw AtelierAPIServiceError.invalidResponse
+        }
+        return image
+    }
+
+    private func mapRoom(_ room: RoomResponse) throws -> SavedRoom {
+        guard let url = absoluteURL(from: room.originalImageUrl) else {
+            throw AtelierAPIServiceError.invalidResponse
+        }
+        return SavedRoom(
+            id: room.id,
+            name: room.name,
+            originalImageURL: url,
+            redesignCount: room.redesignCount
+        )
+    }
+
+    private func absoluteURL(from path: String) -> URL? {
+        if path.hasPrefix("http") {
+            return URL(string: path)
+        }
+        guard let baseURL = APIConfiguration.apiBaseURL else {
+            return nil
+        }
+        return URL(string: path, relativeTo: baseURL)?.absoluteURL
+    }
+
+    private func authorizedRequest(url: URL, method: String) -> URLRequest {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+        request.timeoutInterval = 180
+        if let token = KeychainStore.loadToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        }
+        return request
+    }
+
+    private func sendJSON<T: Decodable>(
+        path: String,
+        method: String,
+        body: Data?,
+        authorized: Bool,
+        decoder: T.Type
+    ) async throws -> T {
         guard let baseURL = APIConfiguration.apiBaseURL else {
             throw AtelierAPIServiceError.missingBaseURL
         }
 
-        guard let imageData = ImageProcessor.pngDataForUpload(from: roomImage) else {
-            throw AtelierAPIServiceError.invalidImage
+        var request = URLRequest(url: baseURL.appending(path: path))
+        request.httpMethod = method
+        request.timeoutInterval = 180
+        if let body {
+            request.httpBody = body
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
+        if authorized, let token = KeychainStore.loadToken() {
+            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        let endpoint = baseURL.appending(path: "api/redesigns")
-        let boundary = "Boundary-\(UUID().uuidString)"
-        var request = URLRequest(url: endpoint)
-        request.httpMethod = "POST"
-        request.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
-        request.timeoutInterval = 180
-        request.httpBody = buildMultipartBody(
-            boundary: boundary,
-            imageData: imageData,
-            styleId: style.id
-        )
+        return try await perform(request, decoder: decoder)
+    }
 
+    private func perform<T: Decodable>(_ request: URLRequest, decoder: T.Type) async throws -> T {
         let (data, response) = try await session.data(for: request)
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AtelierAPIServiceError.invalidResponse
         }
 
-        if httpResponse.statusCode != 201 {
+        if httpResponse.statusCode == 401 {
+            KeychainStore.clearToken()
+        }
+
+        if httpResponse.statusCode == 204, T.self == EmptyResponse.self {
+            return EmptyResponse() as! T
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
             if let apiError = try? JSONDecoder().decode(APIErrorResponse.self, from: data) {
                 throw AtelierAPIServiceError.apiError(apiError.message)
             }
@@ -63,51 +267,24 @@ struct AtelierAPIService {
             throw AtelierAPIServiceError.apiError("Request failed (\(httpResponse.statusCode)): \(body)")
         }
 
-        let decoded = try JSONDecoder().decode(RedesignResultResponse.self, from: data)
+        if T.self == EmptyResponse.self {
+            return EmptyResponse() as! T
+        }
 
-        guard let imageData = Data(base64Encoded: decoded.imageBase64),
-              let image = UIImage(data: imageData) else {
+        if data.isEmpty {
             throw AtelierAPIServiceError.invalidResponse
         }
 
-        return image
+        return try JSONDecoder().decode(T.self, from: data)
     }
-
-    private func buildMultipartBody(
-        boundary: String,
-        imageData: Data,
-        styleId: String
-    ) -> Data {
-        var body = Data()
-        let lineBreak = "\r\n"
-
-        func appendField(name: String, value: String) {
-            body.append("--\(boundary)\(lineBreak)")
-            body.append("Content-Disposition: form-data; name=\"\(name)\"\(lineBreak)\(lineBreak)")
-            body.append("\(value)\(lineBreak)")
-        }
-
-        appendField(name: "styleId", value: styleId)
-
-        body.append("--\(boundary)\(lineBreak)")
-        body.append("Content-Disposition: form-data; name=\"image\"; filename=\"room.png\"\(lineBreak)")
-        body.append("Content-Type: image/png\(lineBreak)\(lineBreak)")
-        body.append(imageData)
-        body.append(lineBreak)
-        body.append("--\(boundary)--\(lineBreak)")
-
-        return body
-    }
-}
-
-private struct RedesignResultResponse: Decodable {
-    let styleId: String
-    let mimeType: String
-    let imageBase64: String
 }
 
 private struct APIErrorResponse: Decodable {
     let message: String
+}
+
+private struct EmptyResponse: Decodable {
+    init() {}
 }
 
 private extension Data {

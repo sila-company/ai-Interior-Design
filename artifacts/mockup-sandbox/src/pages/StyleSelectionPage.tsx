@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { Redirect } from "wouter";
+import { Redirect, useRoute } from "wouter";
 
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { StyleCard } from "@/components/StyleCard";
@@ -9,7 +9,8 @@ import { listDesignStyles } from "@/lib/api";
 import type { DesignStyle } from "@/lib/styles";
 
 export function StyleSelectionPage() {
-  const { roomImageUrl, selectStyle } = useAppFlow();
+  const [, params] = useRoute("/rooms/:roomId/style");
+  const { room, selectStyle } = useAppFlow();
   const [selectedStyle, setSelectedStyle] = useState<DesignStyle | null>(null);
 
   const stylesQuery = useQuery({
@@ -19,25 +20,27 @@ export function StyleSelectionPage() {
 
   useEffect(() => {
     setSelectedStyle(null);
-  }, []);
+  }, [params?.roomId]);
 
-  if (!roomImageUrl) {
-    return <Redirect to="/" />;
+  if (!room || room.id !== params?.roomId) {
+    return <Redirect to="/rooms" />;
   }
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <MobileNavBar title="Style" backTo="/" />
+      <MobileNavBar title="Style" backTo="/rooms" />
 
       <div className="flex-1 overflow-y-auto px-6 pt-4 pb-32">
         <div className="mb-6 flex items-center gap-3.5 rounded-[18px] border border-black/[0.06] bg-white p-3.5">
           <img
-            src={roomImageUrl}
-            alt="Your room"
+            src={room.originalImageUrl}
+            alt={room.name}
             className="h-16 w-16 rounded-[14px] object-cover"
           />
           <div>
-            <p className="text-[15px] font-semibold text-[#1D1D1F]">Your room</p>
+            <p className="text-[15px] font-semibold text-[#1D1D1F]">
+              {room.name}
+            </p>
             <p
               className={
                 selectedStyle
@@ -59,31 +62,16 @@ export function StyleSelectionPage() {
           </p>
         </div>
 
-        {stylesQuery.isLoading ? (
-          <div className="grid grid-cols-2 gap-3.5">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-[180px] animate-pulse rounded-[20px] bg-white/80"
-              />
-            ))}
-          </div>
-        ) : stylesQuery.isError ? (
-          <p className="text-[15px] text-red-600">
-            Could not load styles. Check that the API server is running.
-          </p>
-        ) : (
-          <div className="grid grid-cols-2 gap-3.5">
-            {stylesQuery.data?.map((style) => (
-              <StyleCard
-                key={style.id}
-                style={style}
-                isSelected={selectedStyle?.id === style.id}
-                onSelect={() => setSelectedStyle(style)}
-              />
-            ))}
-          </div>
-        )}
+        <div className="grid grid-cols-2 gap-3.5">
+          {stylesQuery.data?.map((style) => (
+            <StyleCard
+              key={style.id}
+              style={style}
+              isSelected={selectedStyle?.id === style.id}
+              onSelect={() => setSelectedStyle(style)}
+            />
+          ))}
+        </div>
       </div>
 
       <div className="sticky bottom-0 border-t border-black/10 bg-white/80 px-6 py-3 backdrop-blur-xl">

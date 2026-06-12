@@ -5,6 +5,8 @@ Shared backend for the iOS app and web app.
 ## Stack
 
 - **Express 5** API server (`artifacts/api-server`)
+- **Postgres** + **Drizzle** (`lib/db`) — users, named rooms, saved redesigns
+- **JWT** auth — Bearer token (iOS keychain) or `atelier_token` cookie (web)
 - **OpenAPI** contract (`lib/api-spec/openapi.yaml`)
 - **Zod** validation (`lib/api-zod`) — used by the server
 - **OpenAI** `gpt-image-2` — image edits run on the server only
@@ -12,7 +14,8 @@ Shared backend for the iOS app and web app.
 ## Architecture
 
 ```
-iOS / Web  →  Atelier API  →  OpenAI
+iOS / Web  →  Atelier API  →  Postgres
+                          →  OpenAI
 ```
 
 The OpenAI API key lives **only on the server**, never in mobile or web clients.
@@ -23,32 +26,39 @@ The OpenAI API key lives **only on the server**, never in mobile or web clients.
 |--------|------|-------------|
 | `GET` | `/api/healthz` | Health check |
 | `GET` | `/api/styles` | List design styles |
-| `POST` | `/api/redesigns` | Upload room photo + `styleId`, get redesign |
-
-### Create redesign (multipart)
-
-```bash
-curl -X POST http://127.0.0.1:5001/api/redesigns \
-  -F "styleId=modern" \
-  -F "image=@room.jpg"
-```
+| `POST` | `/api/auth/register` | Create account |
+| `POST` | `/api/auth/login` | Sign in |
+| `POST` | `/api/auth/logout` | Sign out |
+| `GET` | `/api/auth/me` | Current user |
+| `GET` | `/api/rooms` | List user's named rooms |
+| `POST` | `/api/rooms` | Create room (multipart: `name`, `image`) |
+| `GET` | `/api/rooms/:id` | Room detail + redesign history |
+| `POST` | `/api/redesigns` | Generate redesign for a saved room (`roomId`, `styleId`) |
 
 ## Run locally
 
-1. Copy env file and add your OpenAI key:
+1. Copy env file and configure secrets:
 
    ```bash
    cp .env.example .env
-   # Edit .env — set OPENAI_API_KEY
+   # Edit .env — set OPENAI_API_KEY, DATABASE_URL, JWT_SECRET
    ```
 
-2. Install dependencies (from repo root):
+2. Push the database schema (requires Postgres):
+
+   ```bash
+   export $(grep -v '^#' .env | xargs)
+   pnpm --filter @workspace/db run push
+   ```
+
+3. Install dependencies (from repo root):
 
    ```bash
    pnpm install
+   pnpm run typecheck:libs
    ```
 
-3. Start the API server (uses `tsx` — no esbuild bundle required on Mac):
+4. Start the API server (uses `tsx` — no esbuild bundle required on Mac):
 
    ```bash
    export $(grep -v '^#' .env | xargs)
@@ -57,7 +67,7 @@ curl -X POST http://127.0.0.1:5001/api/redesigns \
 
    `PORT` defaults to `5001` in `.env.example` (macOS often reserves `5000` for AirPlay). For a production-style bundle (e.g. Replit/Linux), use `pnpm --filter @workspace/api-server run dev:bundle`.
 
-4. Test health:
+5. Test health:
 
    ```bash
    curl http://127.0.0.1:5001/api/healthz

@@ -54,6 +54,9 @@ Atelier/Atelier/Config/Secrets.plist
 # Server secrets
 .env
 
+# Uploaded room/redesign images
+artifacts/api-server/uploads/
+
 # Xcode user-specific state
 **/xcuserdata/
 *.xcuserstate
