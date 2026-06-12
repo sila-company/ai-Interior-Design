@@ -50,3 +50,7 @@ Thumbs.db
 
 # Atelier iOS secrets (never commit API keys)
 Atelier/Atelier/Config/Secrets.plist
+
+# Xcode user-specific state
+**/xcuserdata/
+*.xcuserstate
