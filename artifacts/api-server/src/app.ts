@@ -44,6 +44,11 @@ app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Replit artifact routing may forward stripped paths (e.g. /healthz) to the service.
+app.get("/healthz", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 app.use("/api", router);
 
 if (webDistDir && webIndexPath) {

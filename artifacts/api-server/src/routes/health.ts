@@ -1,5 +1,4 @@
 import { Router, type IRouter } from "express";
-import { getDb, users } from "@workspace/db";
 
 const router: IRouter = Router();
 
@@ -20,6 +19,7 @@ router.get("/healthz/deep", async (_req, res) => {
   };
 
   try {
+    const { getDb, users } = await import("@workspace/db");
     const db = getDb();
     await db.select({ id: users.id }).from(users).limit(1);
     checks.database = true;

@@ -1,5 +1,3 @@
-import { Storage } from "@google-cloud/storage";
-
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
 const REPLIT_ADC = {
@@ -21,15 +19,22 @@ type StorageResult<T> =
   | { ok: true; value: T }
   | { ok: false; error: { message: string } };
 
+type GcsBucket = Awaited<ReturnType<typeof createBucket>>;
+
+async function createBucket(bucketId: string) {
+  const { Storage } = await import("@google-cloud/storage");
+  const gcs = new Storage({
+    credentials: REPLIT_ADC,
+    projectId: "",
+  });
+  return gcs.bucket(bucketId);
+}
+
 export class ReplitAppStorageClient {
-  private bucket: ReturnType<Storage["bucket"]>;
+  private bucketPromise: Promise<GcsBucket>;
 
   constructor(options: { bucketId: string }) {
-    const gcs = new Storage({
-      credentials: REPLIT_ADC,
-      projectId: "",
-    });
-    this.bucket = gcs.bucket(options.bucketId);
+    this.bucketPromise = createBucket(options.bucketId);
   }
 
   async uploadFromBytes(
@@ -38,7 +43,8 @@ export class ReplitAppStorageClient {
     options?: { compress?: boolean },
   ): Promise<StorageResult<null>> {
     try {
-      await this.bucket.file(objectName).save(contents, {
+      const bucket = await this.bucketPromise;
+      await bucket.file(objectName).save(contents, {
         gzip: options?.compress,
       });
       return { ok: true, value: null };
@@ -55,7 +61,8 @@ export class ReplitAppStorageClient {
     options?: { decompress?: boolean },
   ): Promise<StorageResult<Buffer[]>> {
     try {
-      const buffer = await this.bucket.file(objectName).download(options);
+      const bucket = await this.bucketPromise;
+      const buffer = await bucket.file(objectName).download(options);
       return { ok: true, value: buffer };
     } catch (error) {
       return {

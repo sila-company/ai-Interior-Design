@@ -2,14 +2,31 @@ import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ReplitAppStorageClient } from "./replit-app-storage";
+import type { ReplitAppStorageClient } from "./replit-app-storage";
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 const uploadsRoot = path.resolve(artifactDir, "../../uploads");
-const objectStorageBucketId = process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID;
-const objectStorageClient = objectStorageBucketId
-  ? new ReplitAppStorageClient({ bucketId: objectStorageBucketId })
-  : null;
+
+let objectStorageClient: ReplitAppStorageClient | null = null;
+let objectStorageInit: Promise<ReplitAppStorageClient | null> | null = null;
+
+async function getObjectStorageClient(): Promise<ReplitAppStorageClient | null> {
+  const bucketId = process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID;
+  if (!bucketId) {
+    return null;
+  }
+
+  if (objectStorageClient) {
+    return objectStorageClient;
+  }
+
+  objectStorageInit ??= import("./replit-app-storage.js").then(({ ReplitAppStorageClient }) => {
+    objectStorageClient = new ReplitAppStorageClient({ bucketId });
+    return objectStorageClient;
+  });
+
+  return objectStorageInit;
+}
 
 export function toPublicUploadUrl(relativePath: string): string {
   return `/api/uploads/${relativePath.split(path.sep).join("/")}`;
@@ -22,9 +39,10 @@ export async function saveUserImage(
   extension = "jpg",
 ): Promise<string> {
   const relativePath = path.join(userId, ...parts, `${crypto.randomUUID()}.${extension}`);
-  if (objectStorageClient) {
+  const client = await getObjectStorageClient();
+  if (client) {
     const objectName = toObjectName(relativePath);
-    const result = await objectStorageClient.uploadFromBytes(objectName, buffer, {
+    const result = await client.uploadFromBytes(objectName, buffer, {
       compress: false,
     });
     if (!result.ok) {
@@ -40,8 +58,9 @@ export async function saveUserImage(
 }
 
 export async function readStoredImage(relativePath: string): Promise<Buffer> {
-  if (objectStorageClient) {
-    const result = await objectStorageClient.downloadAsBytes(toObjectName(relativePath), {
+  const client = await getObjectStorageClient();
+  if (client) {
+    const result = await client.downloadAsBytes(toObjectName(relativePath), {
       decompress: false,
     });
     if (!result.ok) {
