@@ -2,9 +2,10 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Sparkles } from "lucide-react";
 import { Link, Redirect } from "wouter";
 
+import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAuth } from "@/context/AuthContext";
 import { useAppFlow } from "@/context/AppFlowContext";
-import { listRedesigns, listRooms, listDesignStyles } from "@/lib/api";
+import { listDesignStyles, listRedesigns, listRooms } from "@/lib/api";
 
 function formatRelativeDate(value: string): string {
   const date = new Date(value);
@@ -53,60 +54,65 @@ export function RoomsPage() {
   const recentRedesigns = redesigns.slice(0, 6);
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#F5F5F7]">
-      <header className="border-b border-black/5 bg-white/80 px-6 pb-6 pt-4 backdrop-blur-xl">
-        <div className="mb-6 flex items-center justify-between">
+    <div className="min-h-dvh bg-[#F5F5F7]">
+      <PageFrame>
+        <header className="mb-6 flex flex-col gap-5 rounded-lg border border-black/[0.06] bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-[13px] font-medium tracking-[0.08em] text-[#86868B] uppercase">
+            <p className="text-[13px] font-medium uppercase text-[#86868B]">
               Atelier
             </p>
-            <h1 className="mt-1 text-[30px] font-semibold tracking-[-0.04em] text-[#1D1D1F]">
+            <h1 className="mt-1 text-[34px] font-semibold text-[#1D1D1F]">
               Hi, {user.name.split(" ")[0]}
             </h1>
           </div>
-          <button
-            type="button"
-            onClick={() => void logout()}
-            className="rounded-full bg-black/[0.04] px-4 py-2 text-[14px] text-[#1D1D1F]"
-          >
-            Sign out
-          </button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-[20px] bg-[#0071E3] p-4 text-white">
-            <p className="text-[13px] text-white/80">Rooms</p>
-            <p className="mt-1 text-[28px] font-semibold leading-none">
-              {roomsQuery.isLoading ? "—" : rooms.length}
-            </p>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <Link
+              href="/rooms/new"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-[#0071E3] px-5 py-3 text-[15px] font-medium text-white shadow-[0_10px_24px_rgba(0,113,227,0.18)]"
+            >
+              <Plus className="h-4 w-4" />
+              Add a room
+            </Link>
+            <button
+              type="button"
+              onClick={() => void logout()}
+              className="rounded-full bg-black/[0.04] px-5 py-3 text-[15px] text-[#1D1D1F]"
+            >
+              Sign out
+            </button>
           </div>
-          <div className="rounded-[20px] bg-white p-4 shadow-[0_6px_20px_rgba(0,0,0,0.05)]">
-            <p className="text-[13px] text-[#86868B]">Saved redesigns</p>
-            <p className="mt-1 text-[28px] font-semibold leading-none text-[#1D1D1F]">
-              {redesignsQuery.isLoading ? "—" : totalRedesigns}
-            </p>
-          </div>
-        </div>
-      </header>
+        </header>
 
-      <div className="flex-1 px-6 py-6">
-        <Link
-          href="/rooms/new"
-          className="mb-8 flex w-full items-center justify-center gap-2 rounded-full bg-[#0071E3] px-4 py-3.5 text-[15px] font-medium text-white shadow-[0_10px_24px_rgba(0,113,227,0.28)]"
-        >
-          <Plus className="h-4 w-4" />
-          Add a room
-        </Link>
+        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Surface className="p-4">
+            <p className="text-[13px] text-[#6E6E73]">Rooms</p>
+            <p className="mt-1 text-[30px] font-semibold leading-none">
+              {roomsQuery.isLoading ? "Loading" : rooms.length}
+            </p>
+          </Surface>
+          <Surface className="p-4">
+            <p className="text-[13px] text-[#6E6E73]">Saved redesigns</p>
+            <p className="mt-1 text-[30px] font-semibold leading-none">
+              {redesignsQuery.isLoading ? "Loading" : totalRedesigns}
+            </p>
+          </Surface>
+          <Surface className="p-4 sm:col-span-2">
+            <p className="text-[13px] text-[#6E6E73]">Current workspace</p>
+            <p className="mt-1 text-[18px] font-semibold text-[#1D1D1F]">
+              Save rooms, generate redesigns, and return to any result later.
+            </p>
+          </Surface>
+        </div>
 
         {recentRedesigns.length > 0 ? (
-          <section className="mb-8">
+          <section className="mb-10">
             <div className="mb-4 flex items-center gap-2">
               <Sparkles className="h-4 w-4 text-[#0071E3]" />
-              <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-[#1D1D1F]">
+              <h2 className="text-[22px] font-semibold text-[#1D1D1F]">
                 Recent redesigns
               </h2>
             </div>
-            <div className="flex gap-3 overflow-x-auto pb-1">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
               {recentRedesigns.map((redesign) => {
                 const room = rooms.find((item) => item.id === redesign.roomId);
                 if (!room) return null;
@@ -116,7 +122,7 @@ export function RoomsPage() {
                     key={redesign.id}
                     type="button"
                     onClick={() => viewSavedRedesign(room, redesign)}
-                    className="w-[148px] shrink-0 overflow-hidden rounded-[18px] border border-black/[0.06] bg-white text-left shadow-[0_6px_16px_rgba(0,0,0,0.06)]"
+                    className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
                     <img
                       src={redesign.resultImageUrl}
@@ -142,39 +148,41 @@ export function RoomsPage() {
         ) : null}
 
         <section>
-          <div className="mb-4">
-            <h2 className="text-[20px] font-semibold tracking-[-0.02em] text-[#1D1D1F]">
-              Your rooms
-            </h2>
-            <p className="mt-1 text-[15px] text-[#6E6E73]">
-              Open a room to see every saved redesign.
-            </p>
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 className="text-[22px] font-semibold text-[#1D1D1F]">
+                Your rooms
+              </h2>
+              <p className="mt-1 text-[15px] text-[#6E6E73]">
+                Open a room to see every saved redesign.
+              </p>
+            </div>
           </div>
 
           {roomsQuery.isLoading ? (
-            <div className="space-y-3">
-              {Array.from({ length: 3 }).map((_, index) => (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-28 animate-pulse rounded-[20px] bg-white/80"
+                  className="h-44 animate-pulse rounded-lg bg-white/80"
                 />
               ))}
             </div>
           ) : rooms.length ? (
-            <div className="space-y-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {rooms.map((room) => (
                 <button
                   key={room.id}
                   type="button"
                   onClick={() => openRoom(room)}
-                  className="flex w-full items-center gap-4 rounded-[20px] border border-black/[0.06] bg-white p-4 text-left shadow-[0_6px_12px_rgba(0,0,0,0.05)]"
+                  className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
                   <img
                     src={room.originalImageUrl}
                     alt={room.name}
-                    className="h-20 w-20 rounded-[16px] object-cover"
+                    className="aspect-[16/10] w-full object-cover"
                   />
-                  <div className="min-w-0 flex-1">
+                  <div className="p-4">
                     <p className="truncate text-[18px] font-semibold text-[#1D1D1F]">
                       {room.name}
                     </p>
@@ -187,18 +195,18 @@ export function RoomsPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[20px] border border-dashed border-black/10 bg-white/80 p-8 text-center">
+            <Surface className="p-8 text-center">
               <p className="text-[17px] font-medium text-[#1D1D1F]">
                 No rooms yet
               </p>
-              <p className="mt-2 text-[15px] text-[#6E6E73]">
+              <p className="mx-auto mt-2 max-w-md text-[15px] text-[#6E6E73]">
                 Add your first room, then every AI redesign will be saved here
                 automatically.
               </p>
-            </div>
+            </Surface>
           )}
         </section>
-      </div>
+      </PageFrame>
     </div>
   );
 }

@@ -1,13 +1,14 @@
-import { Client } from "@replit/object-storage";
 import { mkdir, writeFile, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+
+import { ReplitAppStorageClient } from "./replit-app-storage";
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 const uploadsRoot = path.resolve(artifactDir, "../../uploads");
 const objectStorageBucketId = process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID;
 const objectStorageClient = objectStorageBucketId
-  ? new Client({ bucketId: objectStorageBucketId })
+  ? new ReplitAppStorageClient({ bucketId: objectStorageBucketId })
   : null;
 
 export function toPublicUploadUrl(relativePath: string): string {

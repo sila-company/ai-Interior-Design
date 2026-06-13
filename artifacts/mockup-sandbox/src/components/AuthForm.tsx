@@ -38,7 +38,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <label className="block">
           <span className="mb-2 block text-[14px] text-[#6E6E73]">Name</span>
           <input
-            className="w-full rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
+            className="w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
@@ -50,7 +50,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <span className="mb-2 block text-[14px] text-[#6E6E73]">Email</span>
         <input
           type="email"
-          className="w-full rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
+          className="w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
@@ -62,7 +62,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <input
           type="password"
           minLength={8}
-          className="w-full rounded-2xl border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
+          className="w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
@@ -77,7 +77,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         className="w-full rounded-full bg-[#0071E3] px-4 py-3.5 text-[15px] font-medium text-white disabled:opacity-60"
       >
         {isSubmitting
-          ? "Please wait…"
+          ? "Please wait..."
           : mode === "login"
             ? "Sign in"
             : "Create account"}
