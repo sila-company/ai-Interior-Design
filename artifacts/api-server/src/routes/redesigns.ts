@@ -175,7 +175,7 @@ async function generateInventorySafeRedesign(
   prompt: string,
   products: NonNullable<z.infer<typeof createRedesignBodySchema>["products"]>,
 ) {
-  if (products.length === 0) {
+  if (products.length === 0 || process.env.VERIFY_INVENTORY !== "true") {
     return generateRoomRedesign(originalBuffer, prompt);
   }
 
