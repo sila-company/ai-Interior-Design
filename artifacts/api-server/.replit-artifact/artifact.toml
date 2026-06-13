@@ -1,5 +1,5 @@
 kind = "api"
-previewPath = "/api"
+previewPath = "/api/healthz"
 title = "Atelier API"
 version = "1.0.0"
 id = "3B4_FFSkEVBkAeYMFRJ2e"
