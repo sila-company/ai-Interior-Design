@@ -2,14 +2,15 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Redirect, useRoute } from "wouter";
 
+import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAppFlow } from "@/context/AppFlowContext";
 import { createRedesign, redesignToDataUrl } from "@/lib/api";
 
 const statusMessages = [
-  "Analyzing your room…",
-  "Applying your style…",
-  "Refining materials and lighting…",
-  "Almost there…",
+  "Analyzing your room...",
+  "Applying your style...",
+  "Refining materials and lighting...",
+  "Almost there...",
 ];
 
 export function GeneratingPage() {
@@ -72,44 +73,48 @@ export function GeneratingPage() {
 
   if (errorMessage) {
     return (
-      <div className="flex min-h-dvh flex-col items-center justify-center px-8 text-center">
-        <p className="mb-2 text-[22px] font-semibold text-[#1D1D1F]">
-          Generation failed
-        </p>
-        <p className="mb-6 text-[15px] text-[#6E6E73]">{errorMessage}</p>
-        <button
-          type="button"
-          onClick={() => {
-            setErrorMessage(null);
-            setStatusText(statusMessages[0]);
-            setAttempt((value) => value + 1);
-          }}
-          className="w-full max-w-xs rounded-full bg-[#0071E3] px-4 py-3.5 text-[15px] font-medium text-white"
-        >
-          Try again
-        </button>
-      </div>
+      <PageFrame className="flex min-h-dvh items-center justify-center">
+        <Surface className="w-full max-w-md p-8 text-center">
+          <p className="mb-2 text-[24px] font-semibold text-[#1D1D1F]">
+            Generation failed
+          </p>
+          <p className="mb-6 text-[15px] text-[#6E6E73]">{errorMessage}</p>
+          <button
+            type="button"
+            onClick={() => {
+              setErrorMessage(null);
+              setStatusText(statusMessages[0]);
+              setAttempt((value) => value + 1);
+            }}
+            className="w-full rounded-full bg-[#0071E3] px-4 py-3.5 text-[15px] font-medium text-white"
+          >
+            Try again
+          </button>
+        </Surface>
+      </PageFrame>
     );
   }
 
   const Icon = selectedStyle.Icon;
 
   return (
-    <div className="flex min-h-dvh flex-col items-center justify-center px-8 text-center">
-      <div className="relative mb-7 flex h-[72px] w-[72px] items-center justify-center">
-        <div className="absolute inset-0 rounded-full border-4 border-black/[0.06]" />
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0071E3] border-t-transparent" />
-      </div>
+    <PageFrame className="flex min-h-dvh items-center justify-center">
+      <Surface className="w-full max-w-lg p-8 text-center">
+        <div className="relative mx-auto mb-7 flex h-[72px] w-[72px] items-center justify-center">
+          <div className="absolute inset-0 rounded-full border-4 border-black/[0.06]" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0071E3] border-t-transparent" />
+        </div>
 
-      <h2 className="mb-2.5 text-[22px] font-semibold text-[#1D1D1F]">
-        Creating your redesign
-      </h2>
-      <p className="mb-6 text-[16px] text-[#6E6E73]">{statusText}</p>
+        <h2 className="mb-2.5 text-[24px] font-semibold text-[#1D1D1F]">
+          Creating your redesign
+        </h2>
+        <p className="mb-6 text-[16px] text-[#6E6E73]">{statusText}</p>
 
-      <div className="inline-flex items-center gap-2 rounded-full bg-[#0071E3]/[0.08] px-3.5 py-2 text-[14px] font-medium text-[#0071E3]">
-        <Icon className="h-4 w-4" />
-        {selectedStyle.name}
-      </div>
-    </div>
+        <div className="inline-flex items-center gap-2 rounded-full bg-[#0071E3]/[0.08] px-3.5 py-2 text-[14px] font-medium text-[#0071E3]">
+          <Icon className="h-4 w-4" />
+          {selectedStyle.name}
+        </div>
+      </Surface>
+    </PageFrame>
   );
 }
