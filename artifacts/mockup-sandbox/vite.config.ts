@@ -5,6 +5,7 @@ import path from "path";
 
 const port = Number(process.env.PORT ?? 5173);
 const basePath = process.env.BASE_PATH ?? "/";
+const allowedHosts = ["atelier-ai.replit.app"];
 
 // Replit routes the API artifact on :8080; local dev uses :5001.
 const apiTarget =
@@ -27,6 +28,7 @@ export default defineConfig({
   server: {
     port,
     host: "0.0.0.0",
+    allowedHosts,
     proxy: {
       "/api": {
         target: apiTarget,
@@ -37,6 +39,7 @@ export default defineConfig({
   preview: {
     port,
     host: "0.0.0.0",
+    allowedHosts,
     proxy: {
       "/api": {
         target: apiTarget,
