@@ -6,6 +6,7 @@ Shared backend for the iOS app and web app.
 
 - **Express 5** API server (`artifacts/api-server`)
 - **Postgres** + **Drizzle** (`lib/db`) — users, named rooms, saved redesigns
+- **Replit App Storage** — persistent uploaded room photos and generated redesign images
 - **JWT** auth — Bearer token (iOS keychain) or `atelier_token` cookie (web)
 - **OpenAPI** contract (`lib/api-spec/openapi.yaml`)
 - **Zod** validation (`lib/api-zod`) — used by the server
@@ -15,10 +16,12 @@ Shared backend for the iOS app and web app.
 
 ```
 iOS / Web  →  Atelier API  →  Postgres
+                          →  Replit App Storage
                           →  OpenAI
 ```
 
 The OpenAI API key lives **only on the server**, never in mobile or web clients.
+In production, uploaded room photos and generated redesigns should be stored in Replit App Storage. If `REPLIT_OBJECT_STORAGE_BUCKET_ID` is unset, the API falls back to local filesystem storage for development.
 
 ## Endpoints
 
@@ -42,6 +45,7 @@ The OpenAI API key lives **only on the server**, never in mobile or web clients.
    ```bash
    cp .env.example .env
    # Edit .env — set OPENAI_API_KEY, DATABASE_URL, JWT_SECRET
+   # On Replit, also set REPLIT_OBJECT_STORAGE_BUCKET_ID for persistent images
    ```
 
 2. Push the database schema (requires Postgres):
