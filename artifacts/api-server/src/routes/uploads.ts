@@ -1,16 +1,15 @@
 import { Router, type IRouter } from "express";
-import { createReadStream } from "node:fs";
 import path from "node:path";
 
 import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
-import { resolveUploadAbsolutePath } from "../services/storage";
+import { readStoredImage } from "../services/storage";
 
 const router: IRouter = Router();
 
 router.use(requireAuth);
 
-router.get(/.*/, (req: AuthenticatedRequest, res) => {
+router.get(/.*/, async (req: AuthenticatedRequest, res) => {
   const relativePath = req.path.replace(/^\//, "");
   if (!relativePath) {
     res.status(400).json({ message: "File path is required." });
@@ -22,8 +21,7 @@ router.get(/.*/, (req: AuthenticatedRequest, res) => {
     return;
   }
 
-  const absolutePath = resolveUploadAbsolutePath(relativePath);
-  const extension = path.extname(absolutePath).toLowerCase();
+  const extension = path.extname(relativePath).toLowerCase();
   const contentType =
     extension === ".png"
       ? "image/png"
@@ -31,12 +29,14 @@ router.get(/.*/, (req: AuthenticatedRequest, res) => {
         ? "image/webp"
         : "image/jpeg";
 
-  res.setHeader("Content-Type", contentType);
-  createReadStream(absolutePath)
-    .on("error", () => {
-      res.status(404).json({ message: "File not found." });
-    })
-    .pipe(res);
+  try {
+    const buffer = await readStoredImage(relativePath);
+    res.setHeader("Content-Type", contentType);
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    res.send(buffer);
+  } catch {
+    res.status(404).json({ message: "File not found." });
+  }
 });
 
 export default router;

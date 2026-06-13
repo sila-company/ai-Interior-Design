@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { Redirect, useRoute } from "wouter";
 
+import { AuthImage } from "@/components/AuthImage";
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { StyleCard } from "@/components/StyleCard";
 import { PageFrame, Surface } from "@/components/WebLayout";
@@ -58,7 +59,7 @@ export function StyleSelectionPage() {
           <aside className="hidden lg:block">
             <Surface className="sticky top-24 p-4">
               <div className="mb-4 flex items-center gap-3.5">
-                <img
+                <AuthImage
                   src={room.originalImageUrl}
                   alt={room.name}
                   className="h-16 w-16 rounded-lg object-cover"

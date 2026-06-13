@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus } from "lucide-react";
 import { Redirect, useRoute } from "wouter";
 
+import { AuthImage } from "@/components/AuthImage";
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAppFlow } from "@/context/AppFlowContext";
@@ -55,7 +56,7 @@ export function RoomDetailPage() {
       <PageFrame className="flex-1">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <Surface className="overflow-hidden">
-            <img
+            <AuthImage
               src={room.originalImageUrl}
               alt={room.name}
               className="aspect-[16/10] w-full object-cover"
@@ -93,7 +94,7 @@ export function RoomDetailPage() {
                     onClick={() => viewSavedRedesign(room, redesign)}
                     className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    <img
+                    <AuthImage
                       src={redesign.resultImageUrl}
                       alt={styleNames.get(redesign.styleId) ?? "Redesign"}
                       className="aspect-[4/3] w-full object-cover"

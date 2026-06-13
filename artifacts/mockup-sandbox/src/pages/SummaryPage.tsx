@@ -1,5 +1,6 @@
 import { Redirect, useRoute } from "wouter";
 
+import { AuthImage } from "@/components/AuthImage";
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAppFlow } from "@/context/AppFlowContext";
@@ -36,7 +37,7 @@ export function SummaryPage() {
 
         <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
           <Surface className="overflow-hidden">
-            <img
+            <AuthImage
               src={room.originalImageUrl}
               alt={room.name}
               className="aspect-[16/10] w-full object-cover"

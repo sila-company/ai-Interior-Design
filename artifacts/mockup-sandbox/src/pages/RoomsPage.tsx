@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Plus, Sparkles } from "lucide-react";
 import { Link, Redirect } from "wouter";
 
+import { AuthImage } from "@/components/AuthImage";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAuth } from "@/context/AuthContext";
 import { useAppFlow } from "@/context/AppFlowContext";
@@ -124,7 +125,7 @@ export function RoomsPage() {
                     onClick={() => viewSavedRedesign(room, redesign)}
                     className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                   >
-                    <img
+                    <AuthImage
                       src={redesign.resultImageUrl}
                       alt={styleNames.get(redesign.styleId) ?? "Redesign"}
                       className="aspect-[4/3] w-full object-cover"
@@ -177,7 +178,7 @@ export function RoomsPage() {
                   onClick={() => openRoom(room)}
                   className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
                 >
-                  <img
+                  <AuthImage
                     src={room.originalImageUrl}
                     alt={room.name}
                     className="aspect-[16/10] w-full object-cover"

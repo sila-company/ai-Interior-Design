@@ -1,3 +1,4 @@
+import { AuthImage } from "@/components/AuthImage";
 import { ArrowLeftRight } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -48,23 +49,21 @@ export function BeforeAfterCompare({
         updatePosition(event.clientX);
       }}
     >
-      <img
+      <AuthImage
         src={afterSrc}
         alt="After redesign"
         className="absolute inset-0 h-full w-full object-cover"
-        draggable={false}
       />
 
       <div
         className="absolute inset-y-0 left-0 overflow-hidden"
         style={{ width: `${position * 100}%` }}
       >
-        <img
+        <AuthImage
           src={beforeSrc}
           alt="Before redesign"
           className="h-full max-w-none object-cover"
           style={{ width: containerWidth || "100%" }}
-          draggable={false}
         />
       </div>
 
