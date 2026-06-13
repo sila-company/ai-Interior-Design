@@ -38,7 +38,7 @@ export function BeforeAfterCompare({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-[4/3] w-full touch-none select-none overflow-hidden rounded-[20px] border border-black/[0.06] shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
+      className="relative aspect-[4/3] w-full touch-none select-none overflow-hidden rounded-lg border border-black/[0.06] shadow-[0_12px_24px_rgba(0,0,0,0.08)]"
       onPointerDown={(event) => {
         event.currentTarget.setPointerCapture(event.pointerId);
         updatePosition(event.clientX);

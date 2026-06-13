@@ -16,15 +16,15 @@ export function StyleCard({ style, isSelected, onSelect }: StyleCardProps) {
       type="button"
       onClick={onSelect}
       className={[
-        "w-full rounded-[20px] bg-white p-3 text-left transition-all duration-200",
+        "w-full rounded-lg bg-white p-3 text-left transition-all duration-200",
         isSelected
-          ? "scale-[1.02] border-2 border-[#0071E3] shadow-[0_6px_16px_rgba(0,0,0,0.10)]"
-          : "border border-black/[0.06] shadow-[0_6px_10px_rgba(0,0,0,0.05)]",
+          ? "scale-[1.01] border-2 border-[#0071E3] shadow-[0_6px_16px_rgba(0,0,0,0.10)]"
+          : "border border-black/[0.06] shadow-sm hover:-translate-y-0.5 hover:shadow-md",
       ].join(" ")}
     >
       <div className="relative mb-3">
         <div
-          className="flex h-[88px] items-center justify-center rounded-2xl"
+          className="flex h-[96px] items-center justify-center rounded-lg"
           style={{
             background: `linear-gradient(135deg, ${style.gradient[0]}, ${style.gradient[1]})`,
           }}
@@ -38,7 +38,7 @@ export function StyleCard({ style, isSelected, onSelect }: StyleCardProps) {
 
       <div className="space-y-1">
         <p className="text-[16px] font-semibold text-[#1D1D1F]">{style.name}</p>
-        <p className="line-clamp-2 text-[12px] leading-4 text-[#6E6E73]">
+        <p className="line-clamp-2 text-[13px] leading-5 text-[#6E6E73]">
           {style.description}
         </p>
       </div>
