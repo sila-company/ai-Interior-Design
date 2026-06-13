@@ -10,6 +10,7 @@ struct ShoppableProduct: Identifiable, Equatable, Hashable {
     let retailer: String
     let affiliateURL: URL
     let productURL: URL
+    let imageURL: URL
     let width: Double?
     let depth: Double?
     let height: Double?

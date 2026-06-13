@@ -28,6 +28,7 @@ const createRedesignBodySchema = z.object({
         title: z.string(),
         price: z.string().optional(),
         retailer: z.string(),
+        imageUrl: z.string().optional(),
         color: z.string().optional(),
         material: z.string().optional(),
         dimensions: z.string().optional(),

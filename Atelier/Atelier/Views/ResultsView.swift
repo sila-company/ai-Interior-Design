@@ -101,11 +101,21 @@ struct ResultsView: View {
                     RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .fill(Color.black.opacity(0.04))
 
-                    Image(systemName: productIcon(for: product.category))
-                        .font(.system(size: 23, weight: .light))
-                        .foregroundStyle(appleBlue)
+                    AsyncImage(url: product.imageURL) { phase in
+                        switch phase {
+                        case .success(let image):
+                            image
+                                .resizable()
+                                .scaledToFill()
+                        default:
+                            Image(systemName: productIcon(for: product.category))
+                                .font(.system(size: 23, weight: .light))
+                                .foregroundStyle(appleBlue)
+                        }
+                    }
                 }
                 .frame(width: 64, height: 64)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
 
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 8) {

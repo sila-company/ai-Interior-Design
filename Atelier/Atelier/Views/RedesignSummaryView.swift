@@ -83,11 +83,21 @@ struct RedesignSummaryView: View {
                             VStack(alignment: .leading, spacing: 12) {
                                 ForEach(flow.selectedProducts.prefix(4)) { product in
                                     HStack(spacing: 12) {
-                                        Image(systemName: productIcon(for: product.category))
-                                            .font(.system(size: 16, weight: .medium))
-                                            .foregroundStyle(appleBlue)
-                                            .frame(width: 34, height: 34)
-                                            .background(appleBlue.opacity(0.08), in: Circle())
+                                        AsyncImage(url: product.imageURL) { phase in
+                                            switch phase {
+                                            case .success(let image):
+                                                image
+                                                    .resizable()
+                                                    .scaledToFill()
+                                            default:
+                                                Image(systemName: productIcon(for: product.category))
+                                                    .font(.system(size: 16, weight: .medium))
+                                                    .foregroundStyle(appleBlue)
+                                            }
+                                        }
+                                        .frame(width: 42, height: 42)
+                                        .background(appleBlue.opacity(0.08), in: RoundedRectangle(cornerRadius: 10, style: .continuous))
+                                        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
 
                                         VStack(alignment: .leading, spacing: 3) {
                                             Text(product.displayCategory)
