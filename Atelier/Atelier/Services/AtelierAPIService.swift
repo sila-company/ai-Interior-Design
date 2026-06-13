@@ -183,10 +183,15 @@ struct AtelierAPIService {
         return try mapRoom(response)
     }
 
-    func generateRedesign(roomId: String, style: DesignStyle) async throws -> UIImage {
+    func generateRedesign(
+        roomId: String,
+        style: DesignStyle,
+        products: [ShoppableProduct]
+    ) async throws -> UIImage {
         let body = try JSONSerialization.data(withJSONObject: [
             "roomId": roomId,
             "styleId": style.id,
+            "products": ProductCatalog.promptBrief(for: products),
         ])
 
         let response: RedesignResponse = try await sendJSON(

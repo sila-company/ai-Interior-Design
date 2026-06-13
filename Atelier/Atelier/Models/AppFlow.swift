@@ -8,6 +8,7 @@ final class AppFlow {
     var room: SavedRoom?
     var roomImage: UIImage?
     var selectedStyle: DesignStyle?
+    var selectedProducts: [ShoppableProduct] = []
     var redesignedImage: UIImage?
     var savedRedesigns: [SavedRedesign] = []
 
@@ -15,18 +16,21 @@ final class AppFlow {
         self.room = room
         roomImage = image
         selectedStyle = nil
+        selectedProducts = []
         redesignedImage = nil
         path.append(AppRoute.roomDetail)
     }
 
     func beginNewRedesign() {
         selectedStyle = nil
+        selectedProducts = []
         redesignedImage = nil
         path.append(AppRoute.styleSelection)
     }
 
     func viewSavedRedesign(_ redesign: SavedRedesign, image: UIImage, style: DesignStyle) {
         selectedStyle = style
+        selectedProducts = ProductCatalog.bundle(for: room?.name, style: style)
         redesignedImage = image
         path.append(AppRoute.results)
     }
@@ -35,6 +39,7 @@ final class AppFlow {
         self.room = room
         roomImage = image
         selectedStyle = nil
+        selectedProducts = []
         redesignedImage = nil
         path = NavigationPath()
         path.append(AppRoute.styleSelection)
@@ -42,6 +47,7 @@ final class AppFlow {
 
     func selectStyle(_ style: DesignStyle) {
         selectedStyle = style
+        selectedProducts = ProductCatalog.bundle(for: room?.name, style: style)
         path.append(AppRoute.summary)
     }
 
@@ -56,6 +62,7 @@ final class AppFlow {
 
     func tryAnotherStyle() {
         selectedStyle = nil
+        selectedProducts = []
         redesignedImage = nil
         guard room != nil else { return }
         path = NavigationPath()
@@ -67,6 +74,7 @@ final class AppFlow {
         room = nil
         roomImage = nil
         selectedStyle = nil
+        selectedProducts = []
         redesignedImage = nil
         savedRedesigns = []
         path = NavigationPath()

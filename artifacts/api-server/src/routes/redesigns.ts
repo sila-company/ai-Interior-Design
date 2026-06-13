@@ -6,7 +6,10 @@ import { getDb, redesigns, rooms } from "@workspace/db";
 import { buildRedesignPrompt, getStyleById } from "../data/styles";
 import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
-import { generateRoomRedesign } from "../services/openai";
+import {
+  generateRoomRedesign,
+  verifyInventoryCompliance,
+} from "../services/openai";
 import {
   readStoredImage,
   saveUserImage,
@@ -18,6 +21,20 @@ const router: IRouter = Router();
 const createRedesignBodySchema = z.object({
   roomId: z.string().min(1),
   styleId: z.string().min(1),
+  products: z
+    .array(
+      z.object({
+        category: z.string(),
+        title: z.string(),
+        price: z.string().optional(),
+        retailer: z.string(),
+        color: z.string().optional(),
+        material: z.string().optional(),
+        dimensions: z.string().optional(),
+        visualDescription: z.string().optional(),
+      }),
+    )
+    .optional(),
 });
 
 const redesignSchema = z.object({
@@ -97,9 +114,11 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
 
   try {
     const originalBuffer = await readStoredImage(room.originalImagePath);
-    const redesigned = await generateRoomRedesign(
+    const products = parsedBody.data.products ?? [];
+    const redesigned = await generateInventorySafeRedesign(
       originalBuffer,
-      buildRedesignPrompt(style),
+      buildProductAwarePrompt(style, products),
+      products,
     );
 
     const resultImagePath = await saveUserImage(
@@ -150,5 +169,95 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
     res.status(502).json(errorResponseSchema.parse({ message }));
   }
 });
+
+async function generateInventorySafeRedesign(
+  originalBuffer: Buffer,
+  prompt: string,
+  products: NonNullable<z.infer<typeof createRedesignBodySchema>["products"]>,
+) {
+  if (products.length === 0) {
+    return generateRoomRedesign(originalBuffer, prompt);
+  }
+
+  let lastFailure = "The generated image did not pass inventory verification.";
+
+  for (let attempt = 1; attempt <= 3; attempt += 1) {
+    const retryPrompt =
+      attempt === 1
+        ? prompt
+        : [
+            prompt,
+            "Previous attempt failed inventory compliance.",
+            `Failure reason: ${lastFailure}`,
+            "Regenerate the room with STRICTLY no extra furniture or decor beyond the listed inventory.",
+          ].join("\n");
+
+    const redesigned = await generateRoomRedesign(originalBuffer, retryPrompt);
+    const verification = await verifyInventoryCompliance(redesigned, products);
+
+    if (verification.passed && verification.confidence >= 0.7) {
+      return redesigned;
+    }
+
+    const extraItems =
+      verification.extraItems.length > 0
+        ? ` Extra unlisted items: ${verification.extraItems.join(", ")}.`
+        : "";
+    const missing =
+      verification.missingInventoryCategories.length > 0
+        ? ` Missing inventory categories: ${verification.missingInventoryCategories.join(", ")}.`
+        : "";
+    lastFailure = `${verification.reasoning}${extraItems}${missing}`.trim();
+  }
+
+  throw new Error(
+    `Could not generate an inventory-safe redesign after 3 attempts. ${lastFailure}`,
+  );
+}
+
+function buildProductAwarePrompt(
+  style: NonNullable<ReturnType<typeof getStyleById>>,
+  products: NonNullable<z.infer<typeof createRedesignBodySchema>["products"]>,
+) {
+  if (products.length === 0) {
+    return buildRedesignPrompt(style);
+  }
+
+  const productLines = products
+    .map((product, index) => {
+      const details = [
+        product.visualDescription ? `visual description: ${product.visualDescription}` : "",
+        product.color ? `color: ${product.color}` : "",
+        product.material ? `material: ${product.material}` : "",
+        product.dimensions ? `dimensions: ${product.dimensions}` : "",
+      ].filter(Boolean);
+
+      return `${index + 1}. ${product.category}: ${product.title} from ${product.retailer}${
+        details.length > 0 ? ` (${details.join(", ")})` : ""
+      }`;
+    })
+    .join("\n");
+
+  const allowedCategories = Array.from(
+    new Set(products.map((product) => product.category.toLowerCase())),
+  ).join(", ");
+
+  return [
+    `Redesign this room in a ${style.name.toLowerCase()} style.`,
+    style.description,
+    "Preserve the original room architecture: walls, windows, doors, ceiling, floor plan, flooring, camera angle, and perspective.",
+    "INVENTORY LOCK: Use ONLY the shoppable inventory listed below for all visible furniture, rugs, lamps, wall art, bedding, storage, and decor.",
+    "Do NOT create, add, or replace with any sofa, chair, table, rug, bed, dresser, nightstand, lamp, artwork, plant, pillow, throw, shelf, cabinet, or decor item that is not represented in the inventory list.",
+    "If a normal interior design would need an item that is not in the inventory list, leave that area clean and empty rather than inventing an unlisted product.",
+    `Allowed visible product categories: ${allowedCategories}. Do not show other product categories.`,
+    "The visual description for each inventory item is the source of truth for how that item should appear.",
+    "For each visible staged item, preserve its category, color, material, scale, silhouette, and key design details from the visual description.",
+    "It is acceptable for the final room to look sparse if the inventory is limited. Product accuracy is more important than filling the room.",
+    "Photorealistic interior design photograph with natural lighting, realistic shadows, and matching perspective.",
+    "SHOULD NOT INCLUDE: generic furniture, unlisted products, extra sofas, extra chairs, extra tables, extra rugs, extra lamps, extra art, plants, books, vases, or decorative objects unless they are in the inventory list.",
+    "Allowed inventory:",
+    productLines,
+  ].join("\n");
+}
 
 export default router;

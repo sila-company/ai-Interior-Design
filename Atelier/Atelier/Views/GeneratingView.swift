@@ -10,8 +10,9 @@ struct GeneratingView: View {
     private let service = AtelierAPIService()
     private let statusMessages = [
         "Analyzing your room…",
-        "Applying your style…",
-        "Refining materials and lighting…",
+        "Matching shoppable products…",
+        "Staging only inventory items…",
+        "Checking product accuracy…",
         "Almost there…",
     ]
 
@@ -86,10 +87,10 @@ struct GeneratingView: View {
                 Text("Generation failed")
                     .font(.system(size: 22, weight: .semibold))
 
-                Text(message)
-                    .font(.system(size: 15))
-                    .foregroundStyle(Color(red: 0.431, green: 0.431, blue: 0.451))
-                    .multilineTextAlignment(.center)
+        Text(message)
+            .font(.system(size: 15))
+            .foregroundStyle(Color(red: 0.431, green: 0.431, blue: 0.451))
+            .multilineTextAlignment(.center)
 
                 Button {
                     errorMessage = nil
@@ -139,7 +140,11 @@ struct GeneratingView: View {
         defer { rotationTask.cancel() }
 
         do {
-            let image = try await service.generateRedesign(roomId: room.id, style: style)
+            let image = try await service.generateRedesign(
+                roomId: room.id,
+                style: style,
+                products: flow.selectedProducts
+            )
             await MainActor.run {
                 flow.completeGeneration(with: image)
             }

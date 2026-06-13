@@ -35,6 +35,8 @@
 		A10000010000000000000026 /* AddRoomView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000026 /* AddRoomView.swift */; };
 		A10000010000000000000027 /* RoomDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000027 /* RoomDetailView.swift */; };
 		A10000010000000000000028 /* AuthenticatedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000028 /* AuthenticatedImage.swift */; };
+		A10000010000000000000029 /* ShoppableProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000029 /* ShoppableProduct.swift */; };
+		A10000010000000000000030 /* ProductCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000030 /* ProductCatalog.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -66,6 +68,8 @@
 		A10000020000000000000026 /* AddRoomView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddRoomView.swift; sourceTree = "<group>"; };
 		A10000020000000000000027 /* RoomDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomDetailView.swift; sourceTree = "<group>"; };
 		A10000020000000000000028 /* AuthenticatedImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedImage.swift; sourceTree = "<group>"; };
+		A10000020000000000000029 /* ShoppableProduct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppableProduct.swift; sourceTree = "<group>"; };
+		A10000020000000000000030 /* ProductCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalog.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* Atelier.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atelier.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -148,6 +152,7 @@
 				A10000020000000000000016 /* AppRoute.swift */,
 				A10000020000000000000017 /* AppFlow.swift */,
 				A10000020000000000000020 /* SavedRoom.swift */,
+				A10000020000000000000029 /* ShoppableProduct.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -167,6 +172,7 @@
 				A10000020000000000000011 /* AtelierAPIService.swift */,
 				A10000020000000000000021 /* KeychainStore.swift */,
 				A10000020000000000000022 /* AuthManager.swift */,
+				A10000020000000000000030 /* ProductCatalog.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -275,6 +281,8 @@
 				A10000010000000000000026 /* AddRoomView.swift in Sources */,
 				A10000010000000000000027 /* RoomDetailView.swift in Sources */,
 				A10000010000000000000028 /* AuthenticatedImage.swift in Sources */,
+				A10000010000000000000029 /* ShoppableProduct.swift in Sources */,
+				A10000010000000000000030 /* ProductCatalog.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -36,6 +36,10 @@ struct ResultsView: View {
                         .frame(maxWidth: .infinity)
                 }
 
+                if !flow.selectedProducts.isEmpty {
+                    shoppableProductsSection
+                }
+
                 actionButtons
 
                 if case .failed(let message) = saveState {
@@ -61,6 +65,95 @@ struct ResultsView: View {
                 ShareSheet(items: [redesigned])
             }
         }
+    }
+
+    private var shoppableProductsSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Shop this room")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundStyle(primaryText)
+
+                Text("These real Amazon products were matched to your room style. Prices and availability may change.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            VStack(spacing: 12) {
+                ForEach(flow.selectedProducts) { product in
+                    productCard(product)
+                }
+            }
+
+            Text("As an Amazon Associate, Atelier may earn from qualifying purchases.")
+                .font(.system(size: 12))
+                .foregroundStyle(secondaryText)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, 2)
+        }
+    }
+
+    private func productCard(_ product: ShoppableProduct) -> some View {
+        Link(destination: product.affiliateURL) {
+            HStack(spacing: 14) {
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(Color.black.opacity(0.04))
+
+                    Image(systemName: productIcon(for: product.category))
+                        .font(.system(size: 23, weight: .light))
+                        .foregroundStyle(appleBlue)
+                }
+                .frame(width: 64, height: 64)
+
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 8) {
+                        Text(product.displayCategory)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(appleBlue)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(appleBlue.opacity(0.08), in: Capsule())
+
+                        Text(product.retailer)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(secondaryText)
+                    }
+
+                    Text(product.shortTitle)
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(primaryText)
+                        .lineLimit(2)
+                        .multilineTextAlignment(.leading)
+
+                    HStack(spacing: 6) {
+                        Text(product.priceText)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(primaryText)
+
+                        Text("· \(product.color)")
+                            .font(.system(size: 13))
+                            .foregroundStyle(secondaryText)
+                            .lineLimit(1)
+                    }
+                }
+
+                Spacer(minLength: 8)
+
+                Image(systemName: "arrow.up.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(secondaryText)
+            }
+            .padding(14)
+            .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay {
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .stroke(Color.black.opacity(0.06), lineWidth: 1)
+            }
+            .shadow(color: .black.opacity(0.04), radius: 10, y: 5)
+        }
+        .buttonStyle(.plain)
     }
 
     private var header: some View {
@@ -145,6 +238,25 @@ struct ResultsView: View {
         return "Save to Photos"
     }
 
+    private func productIcon(for category: String) -> String {
+        switch category {
+        case "bed_frame":
+            return "bed.double"
+        case "nightstand", "side_table":
+            return "lamp.table"
+        case "coffee_table", "dresser":
+            return "square.grid.2x2"
+        case "rug":
+            return "rectangle"
+        case "wall_art":
+            return "photo"
+        case "accent_chair":
+            return "chair.lounge"
+        default:
+            return "shippingbox"
+        }
+    }
+
     private func saveToPhotos() {
         guard let redesigned = flow.redesignedImage else { return }
 
@@ -178,6 +290,7 @@ struct ResultsView: View {
     flow.roomImage = UIImage(systemName: "photo")
     flow.redesignedImage = UIImage(systemName: "photo.fill")
     flow.selectedStyle = .catalog[0]
+    flow.selectedProducts = ProductCatalog.bundle(for: "Living room", style: .catalog[0])
 
     return NavigationStack {
         ResultsView()
