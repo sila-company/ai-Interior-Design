@@ -1,13 +1,13 @@
-kind = "api"
-previewPath = "/api/healthz"
+kind = "web"
+previewPath = "/"
 title = "Atelier API"
 version = "1.0.0"
 id = "3B4_FFSkEVBkAeYMFRJ2e"
 
 [[services]]
 localPort = 8080
-name = "API Server"
-paths = ["/api"]
+name = "Atelier"
+paths = ["/"]
 
 [services.development]
 run = "pnpm --filter @workspace/api-server run dev"
@@ -18,7 +18,7 @@ PORT = "8080"
 [services.production]
 
 [services.production.build]
-args = ["pnpm", "--filter", "@workspace/api-server", "run", "build"]
+args = ["pnpm", "run", "build:deploy"]
 
 [services.production.build.env]
 NODE_ENV = "production"
@@ -31,4 +31,4 @@ PORT = "8080"
 NODE_ENV = "production"
 
 [services.production.health.startup]
-path = "/api/healthz"
+path = "/healthz"

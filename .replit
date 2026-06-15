@@ -25,9 +25,5 @@ timeoutMs = 20000
 localPort = 8080
 externalPort = 80
 
-[[ports]]
-localPort = 24572
-externalPort = 3000
-
 [objectStorage]
 defaultBucketID = "replit-objstore-4f5e8965-86c6-4751-9ab5-843111a376c2"
