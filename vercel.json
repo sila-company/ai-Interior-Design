@@ -1,9 +1,9 @@
 {
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "pnpm --filter @workspace/mockup-sandbox run build",
+  "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/mockup-sandbox run build",
   "outputDirectory": "artifacts/mockup-sandbox/dist",
   "functions": {
-    "api/[...path].ts": {
+    "api/[...path].js": {
       "maxDuration": 300,
       "memory": 1024
     }
