@@ -3,15 +3,19 @@
   "buildCommand": "pnpm --filter @workspace/api-server run build && pnpm --filter @workspace/mockup-sandbox run build",
   "outputDirectory": "artifacts/mockup-sandbox/dist",
   "functions": {
-    "api/[...path].js": {
+    "api/index.mjs": {
       "maxDuration": 300,
       "memory": 1024
     }
   },
   "rewrites": [
     {
+      "source": "/api",
+      "destination": "/api/index"
+    },
+    {
       "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "destination": "/api/index?path=:path*"
     },
     {
       "source": "/:path*",
