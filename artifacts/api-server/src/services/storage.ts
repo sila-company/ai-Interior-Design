@@ -11,11 +11,15 @@ const blobAccess = process.env.BLOB_ACCESS === "public" ? "public" : "private";
 let objectStorageClient: ReplitAppStorageClient | null = null;
 let objectStorageInit: Promise<ReplitAppStorageClient | null> | null = null;
 
-function hasVercelBlobConfig(): boolean {
+export function hasVercelBlobConfig(): boolean {
   return Boolean(
     process.env.BLOB_READ_WRITE_TOKEN ||
       (process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN),
   );
+}
+
+export function hasPersistentStorageConfig(): boolean {
+  return hasVercelBlobConfig() || Boolean(process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID);
 }
 
 async function readStreamToBuffer(
@@ -83,6 +87,12 @@ export async function saveUserImage(
       throw new Error(`Could not upload image to App Storage: ${result.error.message}`);
     }
     return objectName;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "Persistent file storage is not configured. Add BLOB_READ_WRITE_TOKEN to Vercel.",
+    );
   }
 
   const absolutePath = path.join(uploadsRoot, relativePath);
