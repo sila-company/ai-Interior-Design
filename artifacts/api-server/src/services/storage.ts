@@ -6,9 +6,32 @@ import type { ReplitAppStorageClient } from "./replit-app-storage";
 
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 const uploadsRoot = path.resolve(artifactDir, "../../uploads");
+const blobAccess = process.env.BLOB_ACCESS === "public" ? "public" : "private";
 
 let objectStorageClient: ReplitAppStorageClient | null = null;
 let objectStorageInit: Promise<ReplitAppStorageClient | null> | null = null;
+
+function hasVercelBlobConfig(): boolean {
+  return Boolean(
+    process.env.BLOB_READ_WRITE_TOKEN ||
+      (process.env.BLOB_STORE_ID && process.env.VERCEL_OIDC_TOKEN),
+  );
+}
+
+async function readStreamToBuffer(
+  stream: ReadableStream<Uint8Array>,
+): Promise<Buffer> {
+  const chunks: Buffer[] = [];
+  const reader = stream.getReader();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(Buffer.from(value));
+  }
+
+  return Buffer.concat(chunks);
+}
 
 async function getObjectStorageClient(): Promise<ReplitAppStorageClient | null> {
   const bucketId = process.env.REPLIT_OBJECT_STORAGE_BUCKET_ID;
@@ -39,9 +62,20 @@ export async function saveUserImage(
   extension = "jpg",
 ): Promise<string> {
   const relativePath = path.join(userId, ...parts, `${crypto.randomUUID()}.${extension}`);
+  const objectName = toObjectName(relativePath);
+
+  if (hasVercelBlobConfig()) {
+    const { put } = await import("@vercel/blob");
+    await put(objectName, buffer, {
+      access: blobAccess,
+      allowOverwrite: false,
+      contentType: extension === "png" ? "image/png" : "image/jpeg",
+    });
+    return objectName;
+  }
+
   const client = await getObjectStorageClient();
   if (client) {
-    const objectName = toObjectName(relativePath);
     const result = await client.uploadFromBytes(objectName, buffer, {
       compress: false,
     });
@@ -58,9 +92,20 @@ export async function saveUserImage(
 }
 
 export async function readStoredImage(relativePath: string): Promise<Buffer> {
+  const objectName = toObjectName(relativePath);
+
+  if (hasVercelBlobConfig()) {
+    const { get } = await import("@vercel/blob");
+    const result = await get(objectName, { access: blobAccess });
+    if (!result || result.statusCode !== 200 || !result.stream) {
+      throw new Error("Stored image was not found in Vercel Blob.");
+    }
+    return readStreamToBuffer(result.stream);
+  }
+
   const client = await getObjectStorageClient();
   if (client) {
-    const result = await client.downloadAsBytes(toObjectName(relativePath), {
+    const result = await client.downloadAsBytes(objectName, {
       decompress: false,
     });
     if (!result.ok) {

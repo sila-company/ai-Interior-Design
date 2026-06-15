@@ -9,7 +9,7 @@ import { useAppFlow } from "@/context/AppFlowContext";
 import { createRoom } from "@/lib/api";
 
 export function AddRoomPage() {
-  const { user } = useAuth();
+  const { user, isLoading } = useAuth();
   const { beginNewRedesign } = useAppFlow();
   const [name, setName] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -23,6 +23,14 @@ export function AddRoomPage() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#0071E3] border-t-transparent" />
+      </div>
+    );
+  }
 
   if (!user) {
     return <Redirect to="/login" />;

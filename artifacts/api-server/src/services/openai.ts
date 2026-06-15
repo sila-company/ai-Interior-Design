@@ -14,9 +14,16 @@ interface OpenAIErrorResponse {
   };
 }
 
+export interface ReferenceImage {
+  buffer: Buffer;
+  mimeType: string;
+  filename: string;
+}
+
 export async function generateRoomRedesign(
   imageBuffer: Buffer,
   prompt: string,
+  referenceImages: ReferenceImage[] = [],
 ): Promise<Buffer> {
   const apiKey = process.env["OPENAI_API_KEY"];
   if (!apiKey) {
@@ -30,10 +37,17 @@ export async function generateRoomRedesign(
   form.append("size", "auto");
   form.append("output_format", "jpeg");
   form.append(
-    "image",
+    "image[]",
     new Blob([new Uint8Array(imageBuffer)], { type: "image/png" }),
     "room.png",
   );
+  for (const reference of referenceImages) {
+    form.append(
+      "image[]",
+      new Blob([new Uint8Array(reference.buffer)], { type: reference.mimeType }),
+      reference.filename,
+    );
+  }
 
   const response = await fetch("https://api.openai.com/v1/images/edits", {
     method: "POST",
