@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.atelier.android.core.network.AuthInterceptorsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-16T03:58:33.170Z" hostname="DESKTOP-3MLASM6" time="0.351">
+  <properties/>
+  <testcase name="authHeaderInterceptorInjectsBearerToken" classname="com.atelier.android.core.network.AuthInterceptorsTest" time="0.337"/>
+  <testcase name="authHeaderInterceptorSkipsBlankToken" classname="com.atelier.android.core.network.AuthInterceptorsTest" time="0.004"/>
+  <testcase name="sessionResetInterceptorClearsTokenAndSignalsOn401" classname="com.atelier.android.core.network.AuthInterceptorsTest" time="0.007"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
