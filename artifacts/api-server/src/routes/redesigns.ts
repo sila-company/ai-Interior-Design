@@ -3,7 +3,7 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { getDb, redesigns, rooms } from "@workspace/db";
-import { buildRedesignPrompt, getStyleById } from "../data/styles";
+import { buildRedesignPrompt, customStyleDefinition, getStyleById } from "../data/styles";
 import {
   buildRoomContextLines,
   roomPreferencesFromRecord,
@@ -115,11 +115,33 @@ async function loadProductReferenceImages(
   return { referenced, textOnly };
 }
 
-const createRedesignBodySchema = z.object({
-  roomId: z.string().min(1),
-  styleId: z.string().min(1),
-  revisionInstruction: z.string().trim().max(800).optional(),
-});
+const createRedesignBodySchema = z
+  .object({
+    roomId: z.string().min(1),
+    styleId: z.string().min(1).optional(),
+    customStyleDescription: z.string().trim().min(3).max(500).optional(),
+    revisionInstruction: z.string().trim().max(800).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasStyleId = Boolean(data.styleId);
+    const hasCustomStyle = Boolean(data.customStyleDescription);
+
+    if (!hasStyleId && !hasCustomStyle) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Either styleId or customStyleDescription is required.",
+        path: ["styleId"],
+      });
+    }
+
+    if (hasStyleId && hasCustomStyle) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Provide either styleId or customStyleDescription, not both.",
+        path: ["customStyleDescription"],
+      });
+    }
+  });
 
 const redesignProductSchema = z.object({
   id: z.string(),
@@ -212,12 +234,17 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
   const parsedBody = createRedesignBodySchema.safeParse(req.body);
   if (!parsedBody.success) {
     res.status(400).json(
-      errorResponseSchema.parse({ message: "roomId and styleId are required." }),
+      errorResponseSchema.parse({
+        message: "roomId and a style choice are required.",
+      }),
     );
     return;
   }
 
-  const style = getStyleById(parsedBody.data.styleId);
+  const style = parsedBody.data.customStyleDescription
+    ? customStyleDefinition(parsedBody.data.customStyleDescription)
+    : getStyleById(parsedBody.data.styleId!);
+
   if (!style) {
     res.status(400).json(
       errorResponseSchema.parse({
@@ -226,6 +253,8 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
     );
     return;
   }
+
+  const inventoryStyleId = style.id === "custom" ? "modern" : style.id;
 
   const db = getDb();
   const [room] = await db
@@ -242,7 +271,7 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
   try {
     const originalBuffer = await readStoredImage(room.originalImagePath);
     const roomContext = buildRoomContextLines(roomPreferencesFromRecord(room));
-    const inventoryProducts = await selectInventoryProducts(room, style.id);
+    const inventoryProducts = await selectInventoryProducts(room, inventoryStyleId);
     const prioritizedProducts = prioritizeProducts(
       inventoryProducts,
     );
@@ -300,7 +329,6 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
       mimeType: created.mimeType,
       resultImageUrl: toPublicUploadUrl(created.resultImagePath),
       originalImageUrl: toPublicUploadUrl(room.originalImagePath),
-      imageBase64: redesigned.toString("base64"),
       products: prioritizedProducts,
       createdAt: created.createdAt.toISOString(),
     });
@@ -329,7 +357,7 @@ async function generateInventorySafeRedesign(
 
   let lastFailure = "The generated image did not pass inventory verification.";
 
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
     const retryPrompt =
       attempt === 1
         ? prompt
@@ -363,7 +391,7 @@ async function generateInventorySafeRedesign(
   }
 
   throw new Error(
-    `Could not generate an inventory-safe redesign after 3 attempts. ${lastFailure}`,
+    `Could not generate an inventory-safe redesign after 2 attempts. ${lastFailure}`,
   );
 }
 
@@ -438,7 +466,9 @@ function buildProductAwarePrompt(
   }
 
   lines.push(
-    `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
+    style.id === "custom"
+      ? `Style direction from the homeowner: ${style.description}`
+      : `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
     "INVENTORY LOCK: stage ONLY the exact products listed above. Do NOT create, add, or substitute any sofa, chair, table, rug, bed, dresser, nightstand, lamp, artwork, plant, pillow, throw, shelf, cabinet, or decor item that is not in this list.",
     "Every visible movable object must correspond to one listed product. Avoid generic filler decor. Do not add plants, books, bowls, candles, pillows, blankets, lamps, shelves, or accessories unless they are explicitly listed above.",
     `Allowed visible product categories: ${allowedCategories}. Do not show other product categories.`,

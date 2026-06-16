@@ -364,7 +364,7 @@ struct ResultsView: View {
     }
 
     private func reviseDesign() {
-        guard let room = flow.room, let style = flow.selectedStyle else { return }
+        guard let room = flow.room, flow.hasStyleChoice else { return }
 
         let instruction = revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !instruction.isEmpty else { return }
@@ -376,7 +376,8 @@ struct ResultsView: View {
             do {
                 let result = try await AtelierAPIService().generateRedesign(
                     roomId: room.id,
-                    style: style,
+                    style: flow.selectedStyle,
+                    customStyleDescription: flow.customStyleDescription,
                     revisionInstruction: instruction
                 )
                 await MainActor.run {

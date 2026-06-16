@@ -5,6 +5,7 @@ struct AtelierApp: App {
     @State private var flow = AppFlow()
     @State private var auth = AuthManager()
     @State private var dashboard = DashboardStore()
+    @State private var generation = RedesignGenerationStore()
 
     var body: some Scene {
         WindowGroup {
@@ -61,11 +62,14 @@ struct AtelierApp: App {
             .environment(flow)
             .environment(auth)
             .environment(dashboard)
+            .environment(generation)
             .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
                 if !isAuthenticated {
+                    generation.reset()
                     flow.room = nil
                     flow.roomImage = nil
                     flow.selectedStyle = nil
+                    flow.customStyleDescription = nil
                     flow.selectedProducts = []
                     flow.redesignedImage = nil
                     flow.path = NavigationPath()

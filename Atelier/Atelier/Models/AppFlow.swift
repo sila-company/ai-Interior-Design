@@ -9,6 +9,7 @@ final class AppFlow {
     var room: SavedRoom?
     var roomImage: UIImage?
     var selectedStyle: DesignStyle?
+    var customStyleDescription: String?
     var selectedProducts: [ShoppableProduct] = []
     var redesignedImage: UIImage?
     var savedRedesigns: [SavedRedesign] = []
@@ -17,6 +18,7 @@ final class AppFlow {
         self.room = room
         roomImage = image
         selectedStyle = nil
+        customStyleDescription = nil
         selectedProducts = []
         redesignedImage = nil
         path.append(AppRoute.roomDetail)
@@ -24,13 +26,15 @@ final class AppFlow {
 
     func beginNewRedesign() {
         selectedStyle = nil
+        customStyleDescription = nil
         selectedProducts = []
         redesignedImage = nil
         path.append(AppRoute.styleSelection)
     }
 
     func viewSavedRedesign(_ redesign: SavedRedesign, image: UIImage, style: DesignStyle) {
-        selectedStyle = style
+        selectedStyle = style.id == "custom" ? nil : style
+        customStyleDescription = style.id == "custom" ? style.description : nil
         selectedProducts = redesign.products
         redesignedImage = image
         path.append(AppRoute.results)
@@ -40,6 +44,7 @@ final class AppFlow {
         self.room = room
         roomImage = image
         selectedStyle = nil
+        customStyleDescription = nil
         selectedProducts = []
         redesignedImage = nil
         path = NavigationPath()
@@ -48,11 +53,28 @@ final class AppFlow {
 
     func selectStyle(_ style: DesignStyle) {
         selectedStyle = style
+        customStyleDescription = nil
         selectedProducts = []
         path.append(AppRoute.summary)
     }
 
-    func beginGeneration() {
+    func selectCustomStyle(_ description: String) {
+        selectedStyle = nil
+        customStyleDescription = description
+        selectedProducts = []
+        path.append(AppRoute.summary)
+    }
+
+    var hasStyleChoice: Bool {
+        selectedStyle != nil
+            || !(customStyleDescription?.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ?? true)
+    }
+
+    var styleDisplayName: String {
+        selectedStyle?.name ?? "Custom style"
+    }
+
+    func showGenerating() {
         path.append(AppRoute.generating)
     }
 
@@ -63,6 +85,7 @@ final class AppFlow {
 
     func tryAnotherStyle() {
         selectedStyle = nil
+        customStyleDescription = nil
         selectedProducts = []
         redesignedImage = nil
         guard room != nil else { return }
@@ -75,6 +98,7 @@ final class AppFlow {
         room = nil
         roomImage = nil
         selectedStyle = nil
+        customStyleDescription = nil
         selectedProducts = []
         redesignedImage = nil
         savedRedesigns = []

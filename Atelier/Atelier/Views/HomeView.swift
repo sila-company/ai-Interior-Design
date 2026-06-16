@@ -217,7 +217,7 @@ struct HomeView: View {
     }
 
     private func openRecentRedesign(room: SavedRoom, redesign: SavedRedesign) {
-        guard let style = DesignStyle.catalog.first(where: { $0.id == redesign.styleId }) else { return }
+        guard let style = DesignStyle.from(id: redesign.styleId) else { return }
 
         Task {
             do {
@@ -235,6 +235,6 @@ struct HomeView: View {
     }
 
     private func styleName(for styleId: String) -> String {
-        DesignStyle.catalog.first(where: { $0.id == styleId })?.name ?? styleId
+        DesignStyle.from(id: styleId)?.name ?? styleId
     }
 }
