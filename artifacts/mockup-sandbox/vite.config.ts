@@ -18,6 +18,7 @@ export default defineConfig(({ mode }) => {
   const basePath = process.env.BASE_PATH ?? env.BASE_PATH ?? "/";
   const allowedHosts = [
     "atelier-ai.replit.app",
+    "ateliertech.vercel.app",
     ...parseAllowedHosts(process.env.REPLIT_DOMAINS),
     ...parseAllowedHosts(env.REPLIT_DOMAINS),
   ];

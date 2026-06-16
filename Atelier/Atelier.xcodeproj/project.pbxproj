@@ -37,6 +37,13 @@
 		A10000010000000000000028 /* AuthenticatedImage.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000028 /* AuthenticatedImage.swift */; };
 		A10000010000000000000029 /* ShoppableProduct.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000029 /* ShoppableProduct.swift */; };
 		A10000010000000000000030 /* ProductCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000030 /* ProductCatalog.swift */; };
+		A10000010000000000000031 /* MainTab.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000031 /* MainTab.swift */; };
+		A10000010000000000000032 /* DashboardStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000032 /* DashboardStore.swift */; };
+		A10000010000000000000033 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000033 /* MainTabView.swift */; };
+		A10000010000000000000034 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000034 /* HomeView.swift */; };
+		A10000010000000000000035 /* AccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000035 /* AccountView.swift */; };
+		A10000010000000000000036 /* RoomPreferences.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000036 /* RoomPreferences.swift */; };
+		A10000010000000000000037 /* RoomBriefCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000037 /* RoomBriefCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -70,6 +77,13 @@
 		A10000020000000000000028 /* AuthenticatedImage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticatedImage.swift; sourceTree = "<group>"; };
 		A10000020000000000000029 /* ShoppableProduct.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShoppableProduct.swift; sourceTree = "<group>"; };
 		A10000020000000000000030 /* ProductCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductCatalog.swift; sourceTree = "<group>"; };
+		A10000020000000000000031 /* MainTab.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTab.swift; sourceTree = "<group>"; };
+		A10000020000000000000032 /* DashboardStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardStore.swift; sourceTree = "<group>"; };
+		A10000020000000000000033 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		A10000020000000000000034 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		A10000020000000000000035 /* AccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountView.swift; sourceTree = "<group>"; };
+		A10000020000000000000036 /* RoomPreferences.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomPreferences.swift; sourceTree = "<group>"; };
+		A10000020000000000000037 /* RoomBriefCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoomBriefCard.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* Atelier.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atelier.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -119,6 +133,8 @@
 			isa = PBXGroup;
 			children = (
 				A10000020000000000000002 /* LandingView.swift */,
+				A10000020000000000000033 /* MainTabView.swift */,
+				A10000020000000000000034 /* HomeView.swift */,
 				A10000020000000000000005 /* StyleSelectionView.swift */,
 				A10000020000000000000009 /* RedesignSummaryView.swift */,
 				A10000020000000000000013 /* GeneratingView.swift */,
@@ -126,6 +142,7 @@
 				A10000020000000000000023 /* AuthLoginView.swift */,
 				A10000020000000000000024 /* AuthRegisterView.swift */,
 				A10000020000000000000025 /* RoomsView.swift */,
+				A10000020000000000000035 /* AccountView.swift */,
 				A10000020000000000000026 /* AddRoomView.swift */,
 				A10000020000000000000027 /* RoomDetailView.swift */,
 			);
@@ -141,6 +158,7 @@
 				A10000020000000000000018 /* BeforeAfterCompareView.swift */,
 				A10000020000000000000019 /* ShareSheet.swift */,
 				A10000020000000000000028 /* AuthenticatedImage.swift */,
+				A10000020000000000000037 /* RoomBriefCard.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -153,6 +171,8 @@
 				A10000020000000000000017 /* AppFlow.swift */,
 				A10000020000000000000020 /* SavedRoom.swift */,
 				A10000020000000000000029 /* ShoppableProduct.swift */,
+				A10000020000000000000031 /* MainTab.swift */,
+				A10000020000000000000036 /* RoomPreferences.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -173,6 +193,7 @@
 				A10000020000000000000021 /* KeychainStore.swift */,
 				A10000020000000000000022 /* AuthManager.swift */,
 				A10000020000000000000030 /* ProductCatalog.swift */,
+				A10000020000000000000032 /* DashboardStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -283,6 +304,13 @@
 				A10000010000000000000028 /* AuthenticatedImage.swift in Sources */,
 				A10000010000000000000029 /* ShoppableProduct.swift in Sources */,
 				A10000010000000000000030 /* ProductCatalog.swift in Sources */,
+				A10000010000000000000031 /* MainTab.swift in Sources */,
+				A10000010000000000000032 /* DashboardStore.swift in Sources */,
+				A10000010000000000000033 /* MainTabView.swift in Sources */,
+				A10000010000000000000034 /* HomeView.swift in Sources */,
+				A10000010000000000000035 /* AccountView.swift in Sources */,
+				A10000010000000000000036 /* RoomPreferences.swift in Sources */,
+				A10000010000000000000037 /* RoomBriefCard.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

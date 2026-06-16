@@ -19,10 +19,12 @@ struct RedesignSummaryView: View {
                     Text(room.name)
                         .font(.system(size: 15, weight: .medium))
                         .foregroundStyle(secondaryText)
+
+                    RoomBriefCard(preferences: room.preferences)
                 }
 
                 if let style = flow.selectedStyle {
-                    Text("We'll redesign your room in a \(style.name.lowercased()) style using only the matched shoppable products below.")
+                    Text("We'll redesign your room in a \(style.name.lowercased()) style using only shoppable products selected from the live inventory.")
                         .font(.system(size: 17))
                         .foregroundStyle(secondaryText)
                         .lineSpacing(3)

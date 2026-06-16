@@ -5,6 +5,7 @@ import UIKit
 @MainActor
 final class AppFlow {
     var path = NavigationPath()
+    var selectedTab: MainTab = .home
     var room: SavedRoom?
     var roomImage: UIImage?
     var selectedStyle: DesignStyle?
@@ -30,7 +31,7 @@ final class AppFlow {
 
     func viewSavedRedesign(_ redesign: SavedRedesign, image: UIImage, style: DesignStyle) {
         selectedStyle = style
-        selectedProducts = ProductCatalog.bundle(for: room?.name, style: style)
+        selectedProducts = redesign.products
         redesignedImage = image
         path.append(AppRoute.results)
     }
@@ -47,7 +48,7 @@ final class AppFlow {
 
     func selectStyle(_ style: DesignStyle) {
         selectedStyle = style
-        selectedProducts = ProductCatalog.bundle(for: room?.name, style: style)
+        selectedProducts = []
         path.append(AppRoute.summary)
     }
 
@@ -77,6 +78,7 @@ final class AppFlow {
         selectedProducts = []
         redesignedImage = nil
         savedRedesigns = []
+        selectedTab = .home
         path = NavigationPath()
     }
 }

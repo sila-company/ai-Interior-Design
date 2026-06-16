@@ -49,7 +49,7 @@ vercel --prod
 After deployment, test:
 
 ```text
-https://your-project.vercel.app/api/healthz
+https://ateliertech.vercel.app/api/healthz
 ```
 
 ## iOS configuration
@@ -63,7 +63,7 @@ cp Atelier/Atelier/Config/Secrets.plist.example Atelier/Atelier/Config/Secrets.p
 Set:
 
 ```text
-API_BASE_URL=https://your-project.vercel.app
+API_BASE_URL=https://ateliertech.vercel.app
 ```
 
 The Swift app already appends paths like `api/auth/login`, so do not include

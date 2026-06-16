@@ -31,6 +31,8 @@ struct RoomDetailView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(Color(red: 0.431, green: 0.431, blue: 0.451))
                     }
+
+                    RoomBriefCard(preferences: room.preferences)
                 }
 
                 Button {

@@ -140,13 +140,13 @@ struct GeneratingView: View {
         defer { rotationTask.cancel() }
 
         do {
-            let image = try await service.generateRedesign(
+            let result = try await service.generateRedesign(
                 roomId: room.id,
-                style: style,
-                products: flow.selectedProducts
+                style: style
             )
             await MainActor.run {
-                flow.completeGeneration(with: image)
+                flow.selectedProducts = result.products
+                flow.completeGeneration(with: result.image)
             }
         } catch {
             await MainActor.run {

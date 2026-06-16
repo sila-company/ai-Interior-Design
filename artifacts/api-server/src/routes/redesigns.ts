@@ -4,6 +4,10 @@ import { z } from "zod/v4";
 
 import { getDb, redesigns, rooms } from "@workspace/db";
 import { buildRedesignPrompt, getStyleById } from "../data/styles";
+import {
+  buildRoomContextLines,
+  roomPreferencesFromRecord,
+} from "../lib/room-context";
 import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
 import {
@@ -12,6 +16,11 @@ import {
   type ReferenceImage,
 } from "../services/openai";
 import {
+  ensureInventoryDatabase,
+  selectInventoryProducts,
+  type InventoryProduct,
+} from "../services/inventory";
+import {
   readStoredImage,
   saveUserImage,
   toPublicUploadUrl,
@@ -19,9 +28,7 @@ import {
 
 const router: IRouter = Router();
 
-type RedesignProduct = NonNullable<
-  z.infer<typeof createRedesignBodySchema>["products"]
->[number];
+type RedesignProduct = InventoryProduct;
 
 const MAX_REFERENCE_PRODUCTS = 8;
 const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024;
@@ -111,21 +118,28 @@ async function loadProductReferenceImages(
 const createRedesignBodySchema = z.object({
   roomId: z.string().min(1),
   styleId: z.string().min(1),
-  products: z
-    .array(
-      z.object({
-        category: z.string(),
-        title: z.string(),
-        price: z.string().optional(),
-        retailer: z.string(),
-        imageUrl: z.string().optional(),
-        color: z.string().optional(),
-        material: z.string().optional(),
-        dimensions: z.string().optional(),
-        visualDescription: z.string().optional(),
-      }),
-    )
-    .optional(),
+  revisionInstruction: z.string().trim().max(800).optional(),
+});
+
+const redesignProductSchema = z.object({
+  id: z.string(),
+  roomType: z.string(),
+  category: z.string(),
+  title: z.string(),
+  price: z.string().optional(),
+  currency: z.string(),
+  retailer: z.string(),
+  affiliateUrl: z.string(),
+  productUrl: z.string(),
+  imageUrl: z.string().optional(),
+  width: z.number().optional(),
+  depth: z.number().optional(),
+  height: z.number().optional(),
+  dimensionUnit: z.string(),
+  color: z.string().optional(),
+  material: z.string().optional(),
+  styleTags: z.array(z.string()),
+  visualDescription: z.string().optional(),
 });
 
 const redesignSchema = z.object({
@@ -136,6 +150,7 @@ const redesignSchema = z.object({
   resultImageUrl: z.string(),
   originalImageUrl: z.string(),
   imageBase64: z.string().optional(),
+  products: z.array(redesignProductSchema).optional(),
   createdAt: z.string(),
 });
 
@@ -146,6 +161,8 @@ const errorResponseSchema = z.object({
 router.use(requireAuth);
 
 router.get("/", async (req: AuthenticatedRequest, res) => {
+  await ensureInventoryDatabase();
+
   const db = getDb();
   const rows = await db
     .select({
@@ -166,6 +183,7 @@ router.get("/", async (req: AuthenticatedRequest, res) => {
         mimeType: redesign.mimeType,
         resultImageUrl: toPublicUploadUrl(redesign.resultImagePath),
         originalImageUrl: toPublicUploadUrl(room.originalImagePath),
+        products: parseStoredProducts(redesign.inventoryProducts),
         createdAt: redesign.createdAt.toISOString(),
       }),
     ),
@@ -189,6 +207,8 @@ router.delete("/:redesignId", async (req: AuthenticatedRequest, res) => {
 });
 
 router.post("/", async (req: AuthenticatedRequest, res) => {
+  await ensureInventoryDatabase();
+
   const parsedBody = createRedesignBodySchema.safeParse(req.body);
   if (!parsedBody.success) {
     res.status(400).json(
@@ -221,15 +241,23 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
 
   try {
     const originalBuffer = await readStoredImage(room.originalImagePath);
+    const roomContext = buildRoomContextLines(roomPreferencesFromRecord(room));
+    const inventoryProducts = await selectInventoryProducts(room, style.id);
     const prioritizedProducts = prioritizeProducts(
-      parsedBody.data.products ?? [],
+      inventoryProducts,
     );
     const { referenced, textOnly } =
       await loadProductReferenceImages(prioritizedProducts);
     const referenceImages = referenced.map((item) => item.reference);
     const redesigned = await generateInventorySafeRedesign(
       originalBuffer,
-      buildProductAwarePrompt(style, referenced, textOnly),
+      buildProductAwarePrompt(
+        style,
+        referenced,
+        textOnly,
+        roomContext,
+        parsedBody.data.revisionInstruction,
+      ),
       prioritizedProducts,
       referenceImages,
     );
@@ -249,6 +277,7 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
         styleId: style.id,
         resultImagePath,
         mimeType: "image/jpeg",
+        inventoryProducts: prioritizedProducts,
       })
       .returning();
 
@@ -272,6 +301,7 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
       resultImageUrl: toPublicUploadUrl(created.resultImagePath),
       originalImageUrl: toPublicUploadUrl(room.originalImagePath),
       imageBase64: redesigned.toString("base64"),
+      products: prioritizedProducts,
       createdAt: created.createdAt.toISOString(),
     });
 
@@ -286,10 +316,14 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
 async function generateInventorySafeRedesign(
   originalBuffer: Buffer,
   prompt: string,
-  products: NonNullable<z.infer<typeof createRedesignBodySchema>["products"]>,
+  products: RedesignProduct[],
   referenceImages: ReferenceImage[] = [],
 ) {
-  if (products.length === 0 || process.env.VERIFY_INVENTORY !== "true") {
+  if (products.length === 0) {
+    throw new Error("No active inventory products are available for this room.");
+  }
+
+  if (process.env.VERIFY_INVENTORY === "false") {
     return generateRoomRedesign(originalBuffer, prompt, referenceImages);
   }
 
@@ -348,13 +382,20 @@ function describeProduct(product: RedesignProduct): string {
   }`;
 }
 
+function parseStoredProducts(value: unknown) {
+  const parsed = z.array(redesignProductSchema).safeParse(value);
+  return parsed.success ? parsed.data : undefined;
+}
+
 function buildProductAwarePrompt(
   style: NonNullable<ReturnType<typeof getStyleById>>,
   referenced: ReferencedProduct[],
   textOnly: RedesignProduct[],
+  roomContextLines: string[] = [],
+  revisionInstruction?: string,
 ) {
   if (referenced.length === 0 && textOnly.length === 0) {
-    return buildRedesignPrompt(style);
+    return buildRedesignPrompt(style, roomContextLines);
   }
 
   const allProducts = [
@@ -368,7 +409,15 @@ function buildProductAwarePrompt(
   const lines: string[] = [
     "Image 1 is a photograph of the actual room to redesign.",
     "Keep the room architecture exactly as in Image 1: walls, windows, doors, ceiling, floor plan, flooring, camera angle, and perspective. Do not move walls or change the viewpoint.",
+    ...roomContextLines,
   ];
+
+  if (revisionInstruction) {
+    lines.push(
+      `User requested revision: ${revisionInstruction}`,
+      "Apply the requested revision only if it can be done using the listed inventory products. If the requested change requires an unlisted item, do not invent it; use the closest listed inventory item or leave the area empty.",
+    );
+  }
 
   if (referenced.length > 0) {
     lines.push(
@@ -390,7 +439,8 @@ function buildProductAwarePrompt(
 
   lines.push(
     `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
-    "INVENTORY LOCK: stage ONLY the products listed above. Do NOT create, add, or substitute any sofa, chair, table, rug, bed, dresser, nightstand, lamp, artwork, plant, pillow, throw, shelf, cabinet, or decor item that is not in this list.",
+    "INVENTORY LOCK: stage ONLY the exact products listed above. Do NOT create, add, or substitute any sofa, chair, table, rug, bed, dresser, nightstand, lamp, artwork, plant, pillow, throw, shelf, cabinet, or decor item that is not in this list.",
+    "Every visible movable object must correspond to one listed product. Avoid generic filler decor. Do not add plants, books, bowls, candles, pillows, blankets, lamps, shelves, or accessories unless they are explicitly listed above.",
     `Allowed visible product categories: ${allowedCategories}. Do not show other product categories.`,
     "If a normal interior design would need an item that is not listed, leave that area clean and empty rather than inventing an unlisted product. A sparse but accurate room is preferred over a full but inaccurate one.",
     "Photorealistic interior design photograph with natural lighting, realistic contact shadows, and matching perspective so the products look genuinely placed in the room.",

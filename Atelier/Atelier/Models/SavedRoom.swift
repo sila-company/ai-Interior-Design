@@ -5,6 +5,7 @@ struct SavedRoom: Identifiable, Equatable, Hashable {
     let name: String
     let originalImageURL: URL
     let redesignCount: Int
+    let preferences: RoomPreferences
 }
 
 struct AuthUser: Identifiable, Equatable {
@@ -20,4 +21,5 @@ struct SavedRedesign: Identifiable, Equatable {
     let mimeType: String
     let resultImageURL: URL
     let originalImageURL: URL
+    let products: [ShoppableProduct]
 }
