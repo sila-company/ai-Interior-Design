@@ -266,7 +266,7 @@ private fun StyleCard(
         tonalElevation = if (isSelected) 3.dp else 1.dp,
         border = BorderStroke(
             width = if (isSelected) 2.dp else 1.dp,
-            color = if (isSelected) AtelierColors.Moss else Color.Black.copy(alpha = 0.06f),
+            color = if (isSelected) AtelierColors.AppleBlue else AtelierColors.Border,
         ),
     ) {
         Column(
@@ -293,7 +293,7 @@ private fun StyleCard(
                             .padding(8.dp)
                             .size(24.dp)
                             .clip(CircleShape)
-                            .background(AtelierColors.Moss),
+                            .background(AtelierColors.AppleBlue),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(

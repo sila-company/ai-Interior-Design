@@ -1,5 +1,21 @@
-import app from "./app";
-import { logger } from "./lib/logger";
+import path from "node:path";
+import dotenv from "dotenv";
+
+function loadEnvFile(): void {
+  const candidates = [
+    path.resolve(process.cwd(), ".env"),
+    path.resolve(process.cwd(), "../../.env"),
+  ];
+
+  dotenv.config({ path: candidates, quiet: true });
+}
+
+loadEnvFile();
+
+const [{ default: app }, { logger }] = await Promise.all([
+  import("./app"),
+  import("./lib/logger"),
+]);
 
 const rawPort = process.env["PORT"];
 

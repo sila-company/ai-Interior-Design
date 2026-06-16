@@ -1,7 +1,7 @@
 <resources>
     <style name="Theme.Atelier" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:windowLightStatusBar">true</item>
-        <item name="android:navigationBarColor">#F7F4EF</item>
-        <item name="android:statusBarColor">#F7F4EF</item>
+        <item name="android:navigationBarColor">#FBFBFD</item>
+        <item name="android:statusBarColor">#FBFBFD</item>
     </style>
 </resources>

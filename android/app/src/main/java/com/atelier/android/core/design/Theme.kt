@@ -9,12 +9,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 
 object AtelierColors {
-    val Canvas = Color(0xFFF7F4EF)
+    val AppleBlue = Color(0xFF0071E3)
+    val Canvas = Color(0xFFFBFBFD)
+    val CanvasMuted = Color(0xFFF5F5F7)
     val Surface = Color(0xFFFFFFFF)
-    val Ink = Color(0xFF201D1A)
-    val Muted = Color(0xFF756F67)
-    val Clay = Color(0xFFB96D48)
-    val Moss = Color(0xFF596C56)
+    val Ink = Color(0xFF1D1D1F)
+    val Muted = Color(0xFF6E6E73)
+    val MutedLight = Color(0xFF86868B)
+    val Border = Color(0x0F000000)
+    val BorderStrong = Color(0x14000000)
 }
 
 object AtelierSpacing {
@@ -30,8 +33,8 @@ object AtelierShapes {
 }
 
 private val AtelierColorScheme = lightColorScheme(
-    primary = AtelierColors.Moss,
-    secondary = AtelierColors.Clay,
+    primary = AtelierColors.AppleBlue,
+    secondary = AtelierColors.AppleBlue,
     background = AtelierColors.Canvas,
     surface = AtelierColors.Surface,
     onPrimary = Color.White,

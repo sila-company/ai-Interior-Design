@@ -24,6 +24,7 @@
         android:extractNativeLibs="false"
         android:label="Atelier"
         android:supportsRtl="true"
+        android:testOnly="true"
         android:theme="@style/Theme.Atelier"
         android:usesCleartextTraffic="true" >
         <activity

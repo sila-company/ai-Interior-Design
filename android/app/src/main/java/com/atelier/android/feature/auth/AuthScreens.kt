@@ -84,8 +84,8 @@ fun LandingScreen(
                 .padding(top = 12.dp),
             shape = CircleShape,
             colors = ButtonDefaults.buttonColors(
-                containerColor = AtelierColors.Moss.copy(alpha = 0.10f),
-                contentColor = AtelierColors.Moss,
+                containerColor = AtelierColors.AppleBlue.copy(alpha = 0.10f),
+                contentColor = AtelierColors.AppleBlue,
             ),
         ) {
             Text("Sign in")
