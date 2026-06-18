@@ -8,9 +8,10 @@ export function PrivacyPage() {
   return (
     <LegalPageLayout title="Privacy Policy">
       <p>
-        Atelier (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) respects your
-        privacy. This policy explains what information we collect, how we use it,
-        and the choices you have when you use the Atelier iOS app and website.
+        Atelier (&quot;we,&quot; &quot;us,&quot; or &quot;our&quot;) respects
+        your privacy. This policy explains what information we collect, how we
+        use it, and the choices you have when you use the Atelier iOS app and
+        website.
       </p>
 
       <h2>Information we collect</h2>
@@ -28,14 +29,14 @@ export function PrivacyPage() {
           related metadata tied to your account.
         </li>
         <li>
-          <strong>Purchase information:</strong> Subscription status is
-          verified through Apple. We do not receive or store your full payment
-          card details.
+          <strong>Purchase information:</strong> Subscription status is verified
+          through Apple. We do not receive or store your full payment card
+          details.
         </li>
         <li>
-          <strong>Usage data:</strong> Basic logs needed to operate the
-          service (for example, API requests and error diagnostics). We do not
-          use third-party advertising trackers.
+          <strong>Usage data:</strong> Basic logs needed to operate the service
+          (for example, API requests and error diagnostics). We do not use
+          third-party advertising trackers.
         </li>
       </ul>
 
@@ -51,11 +52,11 @@ export function PrivacyPage() {
 
       <h2>AI processing (OpenAI)</h2>
       <p>
-        Room photos and design instructions are sent to{" "}
-        <strong>OpenAI</strong> to generate redesign images. OpenAI processes
-        this content on our behalf to deliver the feature. We do not use your
-        photos to train our own models. OpenAI&apos;s use of data is governed
-        by their policies and our API configuration.
+        Room photos and design instructions are sent to <strong>OpenAI</strong>{" "}
+        to generate redesign images. OpenAI processes this content on our behalf
+        to deliver the feature. We do not use your photos to train our own
+        models. OpenAI&apos;s use of data is governed by their policies and our
+        API configuration.
       </p>
       <p>
         AI-generated results are suggestions only. They may be inaccurate,
@@ -66,8 +67,8 @@ export function PrivacyPage() {
       <h2>Hosting and storage (Vercel)</h2>
       <p>
         The Atelier API and web app are hosted on <strong>Vercel</strong>.
-        Account data and uploaded images are stored using our database and
-        blob storage providers connected to that infrastructure. Data may be
+        Account data and uploaded images are stored using our database and blob
+        storage providers connected to that infrastructure. Data may be
         processed in the United States or other regions where these providers
         operate.
       </p>
@@ -99,22 +100,22 @@ export function PrivacyPage() {
 
       <h2>Data retention and account deletion</h2>
       <p>
-        We keep your data while your account is active. You may request
-        account deletion from the Account screen in the app or by emailing{" "}
-        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. When you
-        delete your account, we remove your profile, rooms, photos, and
-        redesigns from our systems, subject to reasonable backup retention.
+        We keep your data while your account is active. You may request account
+        deletion from the Account screen in the app or by emailing{" "}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>. When you delete
+        your account, we remove your profile, rooms, photos, and redesigns from
+        our systems, subject to reasonable backup retention.
       </p>
       <p>
-        Deleting your Atelier account does <strong>not</strong> cancel an
-        Apple subscription. Cancel in Settings → Apple ID → Subscriptions.
+        Deleting your Atelier account does <strong>not</strong> cancel an Apple
+        subscription. Cancel in Settings &gt; Apple ID &gt; Subscriptions.
       </p>
 
       <h2>Security</h2>
       <p>
         We use industry-standard measures such as encrypted connections (HTTPS)
-        and secure token storage on device. No method of transmission or
-        storage is 100% secure.
+        and secure token storage on device. No method of transmission or storage
+        is 100% secure.
       </p>
 
       <h2>Children</h2>

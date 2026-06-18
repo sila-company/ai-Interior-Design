@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Plus, Sparkles, Trash2 } from "lucide-react";
+import { Plus, Sparkles, Trash2, UserCircle } from "lucide-react";
 import { useState } from "react";
 import { Link, Redirect } from "wouter";
 
@@ -108,7 +108,7 @@ function RoomCard({
 }
 
 export function RoomsPage() {
-  const { user, isLoading, logout } = useAuth();
+  const { user, isLoading } = useAuth();
   const { openRoom, viewSavedRedesign } = useAppFlow();
 
   const roomsQuery = useQuery({
@@ -148,6 +148,7 @@ export function RoomsPage() {
   );
   const roomNames = new Map(rooms.map((room) => [room.id, room.name]));
   const totalRedesigns = redesigns.length;
+  const stylesTriedCount = new Set(redesigns.map((r) => r.styleId)).size;
   const recentRedesigns = redesigns.slice(0, 6);
 
   return (
@@ -173,33 +174,33 @@ export function RoomsPage() {
               <Plus className="h-4 w-4" />
               Add a room
             </Link>
-            <button
-              type="button"
-              onClick={() => void logout()}
-              className="rounded-full bg-black/[0.04] px-5 py-3 text-[15px] text-[#1D1D1F] lg:hidden"
+            <Link
+              href="/account"
+              className="inline-flex items-center justify-center gap-2 rounded-full bg-black/[0.04] px-5 py-3 text-[15px] text-[#1D1D1F] lg:hidden"
             >
-              Sign out
-            </button>
+              <UserCircle className="h-4 w-4" />
+              Account
+            </Link>
           </div>
         </header>
 
-        <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mb-8 grid gap-4 sm:grid-cols-3">
           <Surface className="p-4">
             <p className="text-[13px] text-[#6E6E73]">Rooms</p>
             <p className="mt-1 text-[30px] font-semibold leading-none">
-              {roomsQuery.isLoading ? "Loading" : rooms.length}
+              {roomsQuery.isLoading ? "—" : rooms.length}
             </p>
           </Surface>
           <Surface className="p-4">
             <p className="text-[13px] text-[#6E6E73]">Saved redesigns</p>
             <p className="mt-1 text-[30px] font-semibold leading-none">
-              {redesignsQuery.isLoading ? "Loading" : totalRedesigns}
+              {redesignsQuery.isLoading ? "—" : totalRedesigns}
             </p>
           </Surface>
-          <Surface className="p-4 sm:col-span-2">
-            <p className="text-[13px] text-[#6E6E73]">Current workspace</p>
-            <p className="mt-1 text-[18px] font-semibold text-[#1D1D1F]">
-              Save rooms, generate redesigns, and return to any result later.
+          <Surface className="p-4">
+            <p className="text-[13px] text-[#6E6E73]">Styles tried</p>
+            <p className="mt-1 text-[30px] font-semibold leading-none">
+              {redesignsQuery.isLoading ? "—" : stylesTriedCount}
             </p>
           </Surface>
         </div>
@@ -222,7 +223,7 @@ export function RoomsPage() {
                     key={redesign.id}
                     type="button"
                     onClick={() => viewSavedRedesign(room, redesign)}
-                    className="overflow-hidden rounded-[18px] border border-black/[0.06] bg-white text-left shadow-[0_10px_24px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]"
+                    className="cursor-pointer overflow-hidden rounded-[18px] border border-black/[0.06] bg-white text-left shadow-[0_10px_24px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]"
                   >
                     <AuthImage
                       src={redesign.resultImageUrl}

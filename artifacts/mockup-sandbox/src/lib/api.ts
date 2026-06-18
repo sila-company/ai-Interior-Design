@@ -8,6 +8,15 @@ export interface User {
   name: string;
 }
 
+export interface MembershipStatus {
+  isActive: boolean;
+  freeRemaining: number;
+  expiresAt: string | null;
+  redesignCount: number;
+  productId: string | null;
+  provider: "apple" | "stripe" | null;
+}
+
 export interface Room {
   id: string;
   name: string;
@@ -97,11 +106,21 @@ async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   return (await response.json()) as T;
 }
 
+export interface AuthSession {
+  token: string;
+  user: User;
+}
+
+export interface AccountSnapshot {
+  user: User;
+  membership: MembershipStatus;
+}
+
 export async function register(
   email: string,
   password: string,
   name: string,
-): Promise<{ token: string; user: User }> {
+): Promise<AuthSession> {
   return apiFetch("/api/auth/register", {
     method: "POST",
     body: JSON.stringify({ email, password, name }),
@@ -111,7 +130,7 @@ export async function register(
 export async function login(
   email: string,
   password: string,
-): Promise<{ token: string; user: User }> {
+): Promise<AuthSession> {
   return apiFetch("/api/auth/login", {
     method: "POST",
     body: JSON.stringify({ email, password }),
@@ -123,8 +142,42 @@ export async function logout(): Promise<void> {
   clearAuthToken();
 }
 
-export async function getMe(): Promise<{ user: User }> {
+export async function getMe(): Promise<AccountSnapshot> {
   return apiFetch("/api/auth/me");
+}
+
+export async function updateProfile(name: string): Promise<AccountSnapshot> {
+  return apiFetch("/api/auth/me", {
+    method: "PATCH",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  await apiFetch("/api/auth/change-password", {
+    method: "POST",
+    body: JSON.stringify({ currentPassword, newPassword }),
+  });
+}
+
+export async function deleteAccount(): Promise<void> {
+  await apiFetch("/api/auth/me", { method: "DELETE" });
+  clearAuthToken();
+}
+
+export async function getMembershipStatus(): Promise<MembershipStatus> {
+  return apiFetch("/api/subscription/status");
+}
+
+export async function createStripeCheckout(): Promise<{ url: string }> {
+  return apiFetch("/api/subscription/stripe/checkout", { method: "POST" });
+}
+
+export async function getStripePortal(): Promise<{ url: string }> {
+  return apiFetch("/api/subscription/stripe/portal", { method: "POST" });
 }
 
 export async function listDesignStyles(): Promise<DesignStyle[]> {

@@ -26,6 +26,9 @@ export const users = pgTable("users", {
   appleOriginalTransactionId: varchar("apple_original_transaction_id", {
     length: 64,
   }).unique(),
+  stripeCustomerId: varchar("stripe_customer_id", { length: 64 }).unique(),
+  stripeSubscriptionId: varchar("stripe_subscription_id", { length: 64 }).unique(),
+  subscriptionProvider: varchar("subscription_provider", { length: 16 }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

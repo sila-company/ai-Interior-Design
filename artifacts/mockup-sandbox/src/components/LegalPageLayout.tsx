@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { PageFrame, Surface } from "@/components/WebLayout";
+import { useAuth } from "@/context/AuthContext";
 
 interface LegalPageLayoutProps {
   title: string;
@@ -14,9 +15,11 @@ export function LegalPageLayout({
   lastUpdated = "June 18, 2026",
   children,
 }: LegalPageLayoutProps) {
+  const { user } = useAuth();
+
   return (
     <div className="flex min-h-dvh flex-col">
-      <MobileNavBar title={title} backTo="/" />
+      <MobileNavBar title={title} backTo={user ? "/account" : "/"} />
       <PageFrame className="py-6 sm:py-10">
         <Surface className="mx-auto max-w-3xl p-6 sm:p-10">
           <p className="mb-2 text-[13px] font-medium uppercase text-[#86868B]">

@@ -20,6 +20,7 @@ const statusSchema = z.object({
   expiresAt: z.string().nullable(),
   redesignCount: z.number(),
   productId: z.string().nullable(),
+  provider: z.enum(["apple", "stripe"]).nullable(),
 });
 
 router.use(requireAuth);

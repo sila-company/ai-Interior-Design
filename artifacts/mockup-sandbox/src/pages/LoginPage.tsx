@@ -16,7 +16,7 @@ export function LoginPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <MobileNavBar title="Sign in" backTo="/" />
-      <PageFrame className="flex flex-1 items-center sm:justify-center">
+      <PageFrame className="flex flex-1 items-center justify-center">
         <Surface className="w-full max-w-[358px] p-6 sm:max-w-md sm:p-8">
           <h1 className="mb-2 text-[28px] font-semibold text-[#1D1D1F]">
             Welcome back

@@ -157,6 +157,10 @@ struct MembershipView: View {
                 .font(.system(size: 12))
                 .foregroundStyle(secondaryText)
 
+            Link("Atelier is also available on the web at atelier.com.", destination: URL(string: "https://atelier.com")!)
+                .font(.system(size: 12))
+                .foregroundStyle(secondaryText)
+
             HStack(spacing: 16) {
                 NavigationLink(value: AppRoute.privacy) {
                     Text("Privacy Policy")

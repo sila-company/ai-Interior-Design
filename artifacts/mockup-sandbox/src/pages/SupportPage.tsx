@@ -14,8 +14,7 @@ export function SupportPage() {
 
       <h2>Contact us</h2>
       <p>
-        Email:{" "}
-        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
+        Email: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
       </p>
       <p>
         We typically respond within 2 business days. Include your account email
@@ -28,12 +27,13 @@ export function SupportPage() {
       <p>
         Atelier Membership is <strong>$19.99/month</strong> and renews
         automatically through your Apple ID. To view, change, or cancel your
-        subscription, open <strong>Settings → Apple ID → Subscriptions</strong>{" "}
-        on your iPhone or iPad.
+        subscription, open{" "}
+        <strong>Settings &gt; Apple ID &gt; Subscriptions</strong> on your
+        iPhone or iPad.
       </p>
       <p>
-        If you reinstall the app, tap <strong>Restore purchases</strong> on
-        the membership screen to sync your subscription.
+        If you reinstall the app, tap <strong>Restore purchases</strong> on the
+        membership screen to sync your subscription.
       </p>
       <p>
         See our <Link href="/terms">Terms of Use</Link> for full subscription
@@ -65,9 +65,9 @@ export function SupportPage() {
 
       <h3>Privacy and data</h3>
       <p>
-        Read our <Link href="/privacy">Privacy Policy</Link> for details on
-        data we collect (email, name, photos), OpenAI processing, Vercel
-        hosting, and Amazon affiliate links.
+        Read our <Link href="/privacy">Privacy Policy</Link> for details on data
+        we collect (email, name, photos), OpenAI processing, Vercel hosting, and
+        Amazon affiliate links.
       </p>
 
       <h2>Legal</h2>

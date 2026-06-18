@@ -45,7 +45,7 @@ export function TermsPage() {
           free redesigns. Additional redesigns require an active membership.
         </li>
         <li>
-          <strong>Manage or cancel:</strong> Open Settings → Apple ID →
+          <strong>Manage or cancel:</strong> Open Settings &gt; Apple ID &gt;
           Subscriptions on your device. We cannot cancel Apple subscriptions on
           your behalf.
         </li>
@@ -76,8 +76,8 @@ export function TermsPage() {
       <h2>Your content</h2>
       <p>
         You retain ownership of photos you upload. You grant us a limited
-        license to host, process, and display your content solely to provide
-        the service, including sending images to our AI processing providers.
+        license to host, process, and display your content solely to provide the
+        service, including sending images to our AI processing providers.
       </p>
       <p>
         You agree not to upload content you do not have rights to use, or
@@ -95,10 +95,10 @@ export function TermsPage() {
 
       <h2>Third-party services</h2>
       <p>
-        Atelier integrates with third parties including Apple (payments),
-        OpenAI (AI generation), Vercel (hosting), and Amazon (affiliate
-        product links). Your use of those services may be subject to their
-        separate terms and policies.
+        Atelier integrates with third parties including Apple (payments), OpenAI
+        (AI generation), Vercel (hosting), and Amazon (affiliate product links).
+        Your use of those services may be subject to their separate terms and
+        policies.
       </p>
 
       <h2>Account deletion</h2>
@@ -112,8 +112,8 @@ export function TermsPage() {
       <h2>Disclaimer of warranties</h2>
       <p>
         Atelier is provided &quot;as is&quot; and &quot;as available&quot;
-        without warranties of any kind, express or implied, including fitness for
-        a particular purpose or non-infringement.
+        without warranties of any kind, express or implied, including fitness
+        for a particular purpose or non-infringement.
       </p>
 
       <h2>Limitation of liability</h2>
@@ -132,9 +132,8 @@ export function TermsPage() {
 
       <h2>Contact</h2>
       <p>
-        Questions? Email{" "}
-        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> or visit{" "}
-        <Link href="/support">Support</Link>.
+        Questions? Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>{" "}
+        or visit <Link href="/support">Support</Link>.
       </p>
     </LegalPageLayout>
   );

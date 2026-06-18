@@ -7,6 +7,7 @@ import pinoHttp from "pino-http";
 
 import { logger } from "./lib/logger";
 import router from "./routes";
+import { stripeWebhookHandler } from "./routes/stripe";
 
 const app: Express = express();
 const webDistDir = [
@@ -80,6 +81,9 @@ app.use(
   }),
 );
 app.use(cookieParser());
+// Stripe webhook needs the raw body for signature verification — register
+// express.raw() for that path BEFORE the global express.json() middleware.
+app.use("/api/webhooks/stripe", express.raw({ type: "application/json" }), stripeWebhookHandler);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

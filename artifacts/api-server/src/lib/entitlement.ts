@@ -8,6 +8,7 @@ export interface UserSubscriptionRecord {
   subscriptionStatus: string;
   subscriptionProductId: string | null;
   subscriptionExpiresAt: Date | null;
+  subscriptionProvider: string | null;
 }
 
 export interface MembershipSnapshot {
@@ -17,6 +18,7 @@ export interface MembershipSnapshot {
   redesignCount: number;
   productId: string | null;
   subscriptionStatus: SubscriptionStatus;
+  provider: "apple" | "stripe" | null;
 }
 
 export type RedesignEntitlementResult =
@@ -93,6 +95,7 @@ export async function loadUserSubscription(
       subscriptionStatus: users.subscriptionStatus,
       subscriptionProductId: users.subscriptionProductId,
       subscriptionExpiresAt: users.subscriptionExpiresAt,
+      subscriptionProvider: users.subscriptionProvider,
     })
     .from(users)
     .where(eq(users.id, userId))
@@ -108,6 +111,10 @@ export async function getMembershipSnapshot(userId: string): Promise<MembershipS
   const isActive = subscription ? isSubscriptionActive(subscription) : false;
   const freeRemaining = isActive ? 0 : Math.max(0, freeLimit - redesignCount);
 
+  const rawProvider = subscription?.subscriptionProvider ?? null;
+  const provider: "apple" | "stripe" | null =
+    rawProvider === "apple" || rawProvider === "stripe" ? rawProvider : null;
+
   return {
     isActive,
     freeRemaining,
@@ -115,6 +122,7 @@ export async function getMembershipSnapshot(userId: string): Promise<MembershipS
     redesignCount,
     productId: subscription?.subscriptionProductId ?? null,
     subscriptionStatus: toSubscriptionStatus(subscription?.subscriptionStatus ?? "none"),
+    provider,
   };
 }
 

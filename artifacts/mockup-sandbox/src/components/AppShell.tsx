@@ -1,5 +1,11 @@
 import type { ReactNode } from "react";
-import { Home, LayoutGrid, LogOut, Plus, UserCircle } from "lucide-react";
+import {
+  CreditCard,
+  LayoutGrid,
+  LogOut,
+  Plus,
+  UserCircle,
+} from "lucide-react";
 import { Link, useLocation } from "wouter";
 
 import { AppBackground } from "./AppBackground";
@@ -34,16 +40,10 @@ export function AppShell({ children }: AppShellProps) {
             <nav className="space-y-1.5">
               <SidebarLink
                 href="/rooms"
-                icon={<Home className="h-[18px] w-[18px]" />}
-                label="Home"
-                active={location === "/rooms"}
-              />
-              <SidebarLink
-                href="/rooms"
                 icon={<LayoutGrid className="h-[18px] w-[18px]" />}
                 label="Rooms"
                 active={
-                  location.startsWith("/rooms/") && location !== "/rooms/new"
+                  location.startsWith("/rooms") && location !== "/rooms/new"
                 }
               />
               <SidebarLink
@@ -52,13 +52,28 @@ export function AppShell({ children }: AppShellProps) {
                 label="Add room"
                 active={location === "/rooms/new"}
               />
+              <SidebarLink
+                href="/membership"
+                icon={<CreditCard className="h-[18px] w-[18px]" />}
+                label="Membership"
+                active={location === "/membership"}
+              />
+              <SidebarLink
+                href="/account"
+                icon={<UserCircle className="h-[18px] w-[18px]" />}
+                label="Account"
+                active={location === "/account"}
+              />
             </nav>
 
             <div className="mt-auto rounded-[20px] border border-black/[0.06] bg-white p-3 shadow-[0_8px_24px_rgba(0,0,0,0.04)]">
               <div className="mb-3 flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0071E3]/[0.08] text-[#0071E3]">
+                <Link
+                  href="/account"
+                  className="flex h-10 w-10 items-center justify-center rounded-full bg-[#0071E3]/[0.08] text-[#0071E3]"
+                >
                   <UserCircle className="h-5 w-5" />
-                </div>
+                </Link>
                 <div className="min-w-0">
                   <p className="truncate text-[15px] font-semibold text-[#1D1D1F]">
                     {user?.name}
