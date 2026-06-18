@@ -45,6 +45,19 @@ class GeneratingViewModelTest {
     }
 
     @Test
+    fun generateCanUseCustomStyleDescription() = runTest {
+        val repository = FakeRedesignRepository(Result.success(redesign(styleId = "custom")))
+        val viewModel = GeneratingViewModel(repository)
+
+        viewModel.generate("room-1", null, "Living room", "warm linen and walnut")
+
+        assertEquals("room-1", repository.lastBody?.roomId)
+        assertEquals(null, repository.lastBody?.styleId)
+        assertEquals("warm linen and walnut", repository.lastBody?.customStyleDescription)
+        assertTrue(repository.lastBody?.products?.isNotEmpty() == true)
+    }
+
+    @Test
     fun clearCompletedRedesignRemovesCompletionPayload() = runTest {
         val viewModel = GeneratingViewModel(FakeRedesignRepository(Result.success(redesign())))
 
@@ -57,10 +70,10 @@ class GeneratingViewModelTest {
     }
 }
 
-private fun redesign() = RedesignDto(
+private fun redesign(styleId: String = "modern") = RedesignDto(
     id = "redesign-1",
     roomId = "room-1",
-    styleId = "modern",
+    styleId = styleId,
     mimeType = "image/jpeg",
     resultImageUrl = "/api/uploads/result.jpg",
     createdAt = "2026-06-16T00:00:00Z",

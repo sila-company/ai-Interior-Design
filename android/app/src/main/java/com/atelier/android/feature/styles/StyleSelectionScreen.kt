@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,11 +18,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -42,7 +42,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +60,7 @@ import com.atelier.android.core.design.StyleCatalog
 import com.atelier.android.core.model.StyleDto
 import com.atelier.android.core.network.NetworkModule
 import com.atelier.android.core.session.SelectedRoomState
+import com.atelier.android.core.ui.PrimaryCapsuleButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -65,6 +68,7 @@ fun StyleSelectionScreen(
     selectedRoomState: SelectedRoomState,
     viewModel: StyleSelectionViewModel,
     onContinue: (StyleDto) -> Unit,
+    onCustomContinue: (String) -> Unit,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val selectedStyle = state.selectedStyle
@@ -82,23 +86,19 @@ fun StyleSelectionScreen(
             bottomBar = {
                 Column {
                     HorizontalDivider(color = AtelierColors.Border)
-                    Button(
-                        onClick = { selectedStyle?.let(onContinue) },
+                    PrimaryCapsuleButton(
+                        text = "Continue",
+                        onClick = {
+                            when (state.pickMode) {
+                                StylePickMode.Catalog -> selectedStyle?.let(onContinue)
+                                StylePickMode.Custom -> onCustomContinue(state.trimmedCustomDescription)
+                            }
+                        },
                         enabled = state.canContinue,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 24.dp, vertical = 12.dp),
-                        shape = CircleShape,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = AtelierColors.AppleBlue,
-                            contentColor = Color.White,
-                            disabledContainerColor = AtelierColors.DisabledFill,
-                            disabledContentColor = AtelierColors.MutedLight,
-                        ),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(vertical = 14.dp),
-                    ) {
-                        Text("Continue", fontSize = 15.sp, fontWeight = FontWeight.Medium)
-                    }
+                    )
                 }
             },
         ) { padding ->
@@ -112,39 +112,51 @@ fun StyleSelectionScreen(
             ) {
                 RoomContextCard(
                     selectedRoomState = selectedRoomState,
-                    selectedStyleName = selectedStyle?.name,
+                    selectionPreview = when (state.pickMode) {
+                        StylePickMode.Catalog -> selectedStyle?.name ?: "Select a style below"
+                        StylePickMode.Custom -> state.trimmedCustomDescription.ifBlank { "Describe your ideal vibe" }
+                    },
+                    hasSelection = state.canContinue,
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Choose your style", style = MaterialTheme.typography.headlineMedium)
-                    Text("Pick the mood you want for your redesign.", style = MaterialTheme.typography.bodyLarge)
+                    Text("Pick a curated mood or describe the feeling you want.", style = MaterialTheme.typography.bodyLarge)
                 }
 
-                when {
-                    state.isLoading -> {
-                        Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
-                            CircularProgressIndicator()
+                StyleModePicker(selectedMode = state.pickMode, onModeSelected = viewModel::selectPickMode)
+
+                when (state.pickMode) {
+                    StylePickMode.Catalog -> when {
+                        state.isLoading -> {
+                            Box(Modifier.fillMaxWidth().padding(vertical = 48.dp), contentAlignment = Alignment.Center) {
+                                CircularProgressIndicator(color = AtelierColors.AppleBlue)
+                            }
                         }
-                    }
-                    state.errorMessage != null -> ErrorState(state.errorMessage.orEmpty(), viewModel::loadStyles)
-                    state.styles.isEmpty() -> EmptyState()
-                    else -> {
-                        Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                            state.styles.chunked(2).forEach { rowStyles ->
-                                Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                                    rowStyles.forEach { style ->
-                                        StyleCard(
-                                            style = style,
-                                            isSelected = style.id == state.selectedStyleId,
-                                            onSelect = { viewModel.selectStyle(style.id) },
-                                            modifier = Modifier.weight(1f),
-                                        )
+                        state.errorMessage != null -> ErrorState(state.errorMessage.orEmpty(), viewModel::loadStyles)
+                        state.styles.isEmpty() -> EmptyState()
+                        else -> {
+                            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                                state.styles.chunked(2).forEach { rowStyles ->
+                                    Row(horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+                                        rowStyles.forEach { style ->
+                                            StyleCard(
+                                                style = style,
+                                                isSelected = style.id == state.selectedStyleId,
+                                                onSelect = { viewModel.selectStyle(style.id) },
+                                                modifier = Modifier.weight(1f),
+                                            )
+                                        }
+                                        if (rowStyles.size == 1) Box(Modifier.weight(1f))
                                     }
-                                    if (rowStyles.size == 1) Box(Modifier.weight(1f))
                                 }
                             }
                         }
                     }
+                    StylePickMode.Custom -> CustomStyleSection(
+                        value = state.customDescription,
+                        onValueChange = viewModel::updateCustomDescription,
+                    )
                 }
                 Box(Modifier.height(80.dp))
             }
@@ -155,7 +167,8 @@ fun StyleSelectionScreen(
 @Composable
 private fun RoomContextCard(
     selectedRoomState: SelectedRoomState,
-    selectedStyleName: String?,
+    selectionPreview: String,
+    hasSelection: Boolean,
 ) {
     Row(
         modifier = Modifier
@@ -171,11 +184,98 @@ private fun RoomContextCard(
         Column {
             Text("Your room", fontSize = 15.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.Ink)
             Text(
-                selectedStyleName ?: "Select a style below",
+                selectionPreview,
                 fontSize = 14.sp,
-                color = if (selectedStyleName == null) AtelierColors.MutedLight else AtelierColors.AppleBlue,
+                color = if (hasSelection) AtelierColors.AppleBlue else AtelierColors.MutedLight,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
             )
         }
+    }
+}
+
+@Composable
+private fun StyleModePicker(
+    selectedMode: StylePickMode,
+    onModeSelected: (StylePickMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AtelierShapes.cardMedium)
+            .background(AtelierColors.SignOutFill)
+            .padding(2.dp),
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+    ) {
+        StylePickMode.entries.forEach { mode ->
+            val selected = mode == selectedMode
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(AtelierShapes.cardSmall)
+                    .background(if (selected) AtelierColors.Surface else Color.Transparent)
+                    .clickable { onModeSelected(mode) }
+                    .padding(horizontal = 8.dp, vertical = 9.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    mode.label,
+                    fontSize = 14.sp,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                    color = if (selected) AtelierColors.Ink else AtelierColors.SecondaryText,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomStyleSection(
+    value: String,
+    onValueChange: (String) -> Unit,
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AtelierShapes.roundedSurface)
+            .background(AtelierColors.Surface)
+            .border(BorderStroke(1.dp, AtelierColors.Border), AtelierShapes.roundedSurface)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Text("What do you want the room to feel like?", style = MaterialTheme.typography.titleSmall)
+        Text(
+            "Describe the mood, colors, materials, or vibe you have in mind.",
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        BasicTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(132.dp)
+                .clip(AtelierShapes.textField)
+                .background(AtelierColors.Surface)
+                .border(BorderStroke(1.dp, AtelierColors.Border), AtelierShapes.textField)
+                .padding(14.dp),
+            textStyle = TextStyle(color = AtelierColors.Ink, fontSize = 16.sp, lineHeight = 22.sp),
+            cursorBrush = SolidColor(AtelierColors.AppleBlue),
+            decorationBox = { innerTextField ->
+                Box(Modifier.fillMaxSize()) {
+                    if (value.isBlank()) {
+                        Text(
+                            "Warm earthy tones with plants, soft linen, and golden afternoon light",
+                            color = AtelierColors.MutedLight,
+                            fontSize = 15.sp,
+                            lineHeight = 21.sp,
+                        )
+                    }
+                    innerTextField()
+                }
+            },
+        )
     }
 }
 

@@ -23,13 +23,14 @@ class GeneratingViewModel(
 
     private var rotationJob: Job? = null
 
-    fun generate(roomId: String, styleId: String, roomName: String?) {
+    fun generate(roomId: String, styleId: String?, roomName: String?, customStyleDescription: String? = null) {
         if (_uiState.value.isGenerating) return
 
         _uiState.value = GeneratingUiState(isGenerating = true)
         startStatusRotation()
 
-        val products = ProductCatalog.bundle(roomName, styleId)
+        val effectiveStyleId = styleId ?: "custom"
+        val products = ProductCatalog.bundle(roomName, effectiveStyleId)
 
         viewModelScope.launch {
             runCatching {
@@ -37,6 +38,7 @@ class GeneratingViewModel(
                     CreateRedesignRequestDto(
                         roomId = roomId,
                         styleId = styleId,
+                        customStyleDescription = customStyleDescription?.trim()?.takeIf { it.isNotEmpty() },
                         products = ProductCatalog.promptBrief(products),
                     ),
                 )

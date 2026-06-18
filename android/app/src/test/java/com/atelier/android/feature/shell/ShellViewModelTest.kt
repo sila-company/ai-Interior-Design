@@ -51,6 +51,20 @@ class ShellViewModelTest {
     }
 
     @Test
+    fun customStyleIsStoredAgainstCurrentRoom() = runTest {
+        val viewModel = ShellViewModel(FakeAuthRepository(UserDto("u1", "a@example.com", "Ada")), MutableSharedFlow())
+        val room = RoomDto("r1", "Living room", "/api/uploads/r1.jpg", "2026-06-15T00:00:00Z", 0)
+
+        viewModel.openRoom(room, "content://room")
+        viewModel.selectCustomStyle("  warm linen and walnut  ")
+
+        assertEquals(room, viewModel.selectedRoomState.value.room)
+        assertEquals("warm linen and walnut", viewModel.selectedRoomState.value.customStyleDescription)
+        assertEquals(null, viewModel.selectedRoomState.value.selectedStyle)
+        assertTrue(viewModel.selectedRoomState.value.hasStyleChoice)
+    }
+
+    @Test
     fun generatedRedesignIsStoredForResultsHandoff() = runTest {
         val viewModel = ShellViewModel(FakeAuthRepository(UserDto("u1", "a@example.com", "Ada")), MutableSharedFlow())
         val redesign = RedesignDto(

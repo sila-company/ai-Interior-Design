@@ -286,7 +286,7 @@ fun AddRoomScreen(viewModel: AddRoomViewModel) {
                     Text(state.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
                 }
                 PrimaryCapsuleButton(
-                    text = if (state.isSubmitting) "Saving room…" else "Save and continue",
+                    text = if (state.isSubmitting) "Saving room..." else "Save and continue",
                     onClick = viewModel::submit,
                     enabled = state.canSubmit,
                     isLoading = state.isSubmitting,
@@ -472,6 +472,254 @@ private fun PhotoPreview(uri: Uri?, isPreparing: Boolean) {
 
 private fun styleName(styleId: String): String =
     StyleCatalog.styleFor(styleId)?.name ?: styleId.replaceFirstChar { it.uppercase() }
+
+@Composable
+fun RoomsLibraryScreen(
+    viewModel: RoomsViewModel,
+    onAddRoom: () -> Unit,
+    onRoomSelected: (RoomDto) -> Unit,
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    Box(Modifier.fillMaxSize()) {
+        AppBackground()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                Text("Rooms", fontSize = 34.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.Ink)
+                Text("Each room keeps its photo and every AI redesign.", style = MaterialTheme.typography.bodyLarge)
+            }
+
+            PrimaryCapsuleButton(text = "Add a room", onClick = onAddRoom)
+
+            when {
+                state.isLoading -> {
+                    CircularProgressIndicator(modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 40.dp))
+                }
+                state.errorMessage != null -> {
+                    Text(state.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error)
+                }
+                state.rooms.isEmpty() -> {
+                    Text(
+                        "No rooms yet. Add your first room to start redesigning.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(AtelierShapes.roundedSurface)
+                            .background(AtelierColors.Surface)
+                            .padding(24.dp),
+                    )
+                }
+                else -> {
+                    state.rooms.forEach { room ->
+                        RoomListRow(room = room, onClick = { onRoomSelected(room) })
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun HomeDashboardScreen(
+    userName: String,
+    viewModel: RoomsViewModel,
+    onAddRoom: () -> Unit,
+    onBrowseRooms: () -> Unit,
+    onRecentRedesignSelected: (RoomDto, RedesignDto) -> Unit,
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    Box(Modifier.fillMaxSize()) {
+        AppBackground()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text("ATELIER", style = MaterialTheme.typography.labelMedium)
+                Text("Hi, ${userName.firstName()}", fontSize = 34.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.Ink)
+                Text("Your rooms and AI redesigns, all in one place.", style = MaterialTheme.typography.bodyLarge)
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                StatTile(
+                    label = "Rooms",
+                    value = if (state.isLoading) "-" else state.rooms.size.toString(),
+                    primary = true,
+                    modifier = Modifier.weight(1f),
+                )
+                StatTile(
+                    label = "Redesigns",
+                    value = if (state.isLoading) "-" else state.redesigns.size.toString(),
+                    primary = false,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            PrimaryCapsuleButton(text = "Add a room", onClick = onAddRoom)
+
+            if (state.recentRedesigns.isNotEmpty()) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text("Recent redesigns", style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        state.recentRedesigns.forEach { redesign ->
+                            val room = state.rooms.firstOrNull { it.id == redesign.roomId } ?: return@forEach
+                            RecentRedesignCard(
+                                room = room,
+                                redesign = redesign,
+                                onClick = { onRecentRedesignSelected(room, redesign) },
+                            )
+                        }
+                    }
+                }
+            }
+
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Quick start", style = MaterialTheme.typography.titleMedium)
+                QuickStartRow(
+                    title = "Photograph a room",
+                    subtitle = "Save it with a name you'll remember.",
+                    onClick = onAddRoom,
+                )
+                QuickStartRow(
+                    title = "Browse your rooms",
+                    subtitle = "Open a room and try a new style.",
+                    onClick = onBrowseRooms,
+                )
+            }
+
+            if (state.errorMessage != null) {
+                Text(state.errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error, fontSize = 14.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickStartRow(
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(AtelierShapes.cardLarge)
+            .background(AtelierColors.Surface)
+            .clickable(onClick = onClick)
+            .padding(14.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(14.dp),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(AtelierColors.AppleBlue.copy(alpha = 0.08f)),
+            contentAlignment = Alignment.Center,
+        ) {
+            Text("+", fontSize = 20.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.AppleBlue)
+        }
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Text(title, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.Ink)
+            Text(subtitle, fontSize = 14.sp, color = AtelierColors.SecondaryText)
+        }
+    }
+}
+
+@Composable
+fun AccountScreen(
+    userName: String,
+    userEmail: String,
+    viewModel: RoomsViewModel,
+    onSignOut: () -> Unit,
+) {
+    val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    Box(Modifier.fillMaxSize()) {
+        AppBackground()
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp),
+        ) {
+            Text("Account", fontSize = 34.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.Ink)
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(AtelierShapes.roundedSurface)
+                    .background(AtelierColors.Surface)
+                    .padding(18.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(AtelierColors.AppleBlue),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(initials(userName), fontSize = 22.sp, fontWeight = FontWeight.SemiBold, color = Color.White)
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text(userName, style = MaterialTheme.typography.titleMedium)
+                    Text(userEmail, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(AtelierShapes.roundedSurface)
+                    .background(AtelierColors.Surface)
+                    .padding(18.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text("Your library", style = MaterialTheme.typography.titleSmall)
+                Row {
+                    LibraryStat(value = state.rooms.size.toString(), label = "Rooms", modifier = Modifier.weight(1f))
+                    LibraryStat(value = state.redesigns.size.toString(), label = "Redesigns", modifier = Modifier.weight(1f))
+                }
+            }
+
+            SignOutCapsuleButton(text = "Sign out", onClick = onSignOut, modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
+private fun LibraryStat(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(value, fontSize = 24.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.Ink)
+        Text(label, fontSize = 14.sp, color = AtelierColors.SecondaryText)
+    }
+}
+
+private fun initials(name: String): String =
+    name.trim()
+        .split(" ")
+        .filter { it.isNotBlank() }
+        .take(2)
+        .mapNotNull { it.firstOrNull()?.uppercase() }
+        .joinToString("")
+        .ifBlank { "A" }
 
 private fun String.firstName(): String =
     trim().split(" ").firstOrNull()?.takeIf { it.isNotBlank() } ?: "there"

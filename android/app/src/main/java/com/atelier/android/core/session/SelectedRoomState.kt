@@ -9,6 +9,10 @@ data class SelectedRoomState(
     val room: RoomDto? = null,
     val localImageUri: String? = null,
     val selectedStyle: StyleDto? = null,
+    val customStyleDescription: String? = null,
     val selectedProducts: List<ShoppableProduct> = emptyList(),
     val redesign: RedesignDto? = null,
-)
+) {
+    val hasStyleChoice: Boolean
+        get() = selectedStyle != null || !customStyleDescription.isNullOrBlank()
+}

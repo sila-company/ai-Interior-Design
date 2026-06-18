@@ -152,7 +152,7 @@ fun LandingScreen(
                         tint = AtelierColors.MutedLight,
                         modifier = Modifier.height(28.dp),
                     )
-                    Text("Living room · Bedroom · Office", color = AtelierColors.MutedLight, fontSize = 15.sp)
+                    Text("Living room - Bedroom - Office", color = AtelierColors.MutedLight, fontSize = 15.sp)
                 }
             }
         }
@@ -172,7 +172,7 @@ fun LoginScreen(
             AtelierTextField(state.password, viewModel::onPasswordChanged, "Password", isPassword = true)
             ErrorText(state.errorMessage)
             PrimaryCapsuleButton(
-                text = if (state.isSubmitting) "Please wait…" else "Sign in",
+                text = if (state.isSubmitting) "Please wait..." else "Sign in",
                 onClick = viewModel::submit,
                 enabled = state.canSubmit,
                 isLoading = state.isSubmitting,
@@ -193,7 +193,7 @@ fun RegisterScreen(viewModel: RegisterViewModel) {
             AtelierTextField(state.password, viewModel::onPasswordChanged, "Password", isPassword = true)
             ErrorText(state.errorMessage)
             PrimaryCapsuleButton(
-                text = if (state.isSubmitting) "Please wait…" else "Create account",
+                text = if (state.isSubmitting) "Please wait..." else "Create account",
                 onClick = viewModel::submit,
                 enabled = state.canSubmit,
                 isLoading = state.isSubmitting,

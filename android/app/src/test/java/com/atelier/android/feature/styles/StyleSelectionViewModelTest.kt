@@ -60,6 +60,19 @@ class StyleSelectionViewModelTest {
         assertEquals(styles[1], viewModel.uiState.value.selectedStyle)
         assertTrue(viewModel.uiState.value.canContinue)
     }
+
+    @Test
+    fun customDescriptionEnablesContinueInCustomMode() = runTest {
+        val viewModel = StyleSelectionViewModel(FakeStylesRepository(result = Result.success(listOf(style("modern")))))
+
+        viewModel.selectPickMode(StylePickMode.Custom)
+        viewModel.updateCustomDescription("  warm linen and walnut  ")
+
+        assertEquals(StylePickMode.Custom, viewModel.uiState.value.pickMode)
+        assertEquals("warm linen and walnut", viewModel.uiState.value.trimmedCustomDescription)
+        assertTrue(viewModel.uiState.value.canContinue)
+        assertEquals(null, viewModel.uiState.value.selectedStyle)
+    }
 }
 
 private fun style(id: String) = StyleDto(

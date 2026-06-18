@@ -106,6 +106,7 @@ fun SummaryScreen(
 ) {
     val room = selectedRoomState.room
     val style = selectedRoomState.selectedStyle
+    val customStyleDescription = selectedRoomState.customStyleDescription
 
     Box(Modifier.fillMaxSize()) {
         AppBackground()
@@ -133,6 +134,12 @@ fun SummaryScreen(
                 if (style != null) {
                     Text(
                         "We'll redesign your room in a ${style.name.lowercase()} style using only the matched shoppable products below.",
+                        style = MaterialTheme.typography.bodyLarge,
+                        lineHeight = 24.sp,
+                    )
+                } else if (customStyleDescription != null) {
+                    Text(
+                        "We'll redesign your room to feel like this, using only shoppable products from the live inventory.",
                         style = MaterialTheme.typography.bodyLarge,
                         lineHeight = 24.sp,
                     )
@@ -165,6 +172,27 @@ fun SummaryScreen(
                             }
                         }
                     }
+                } else if (customStyleDescription != null) {
+                    SummaryCard(title = "Your style") {
+                        Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.Top) {
+                            Box(
+                                modifier = Modifier
+                                    .size(56.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .background(AtelierColors.AppleBlue.copy(alpha = 0.08f)),
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Text("\"", fontSize = 28.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.AppleBlue)
+                            }
+                            Text(
+                                customStyleDescription,
+                                fontSize = 15.sp,
+                                color = AtelierColors.Ink,
+                                lineHeight = 21.sp,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
                 }
 
                 if (selectedRoomState.selectedProducts.isNotEmpty()) {
@@ -188,7 +216,7 @@ fun SummaryScreen(
                 PrimaryCapsuleButton(
                     text = "Generate redesign",
                     onClick = onGenerate,
-                    enabled = room != null && style != null,
+                    enabled = room != null && selectedRoomState.hasStyleChoice,
                     modifier = Modifier.padding(top = 8.dp),
                 )
             }
@@ -204,11 +232,12 @@ fun GeneratingScreen(
 ) {
     val room = selectedRoomState.room
     val style = selectedRoomState.selectedStyle
+    val customStyleDescription = selectedRoomState.customStyleDescription
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(room?.id, style?.id) {
-        if (room != null && style != null && state.redesign == null && !state.isGenerating && state.errorMessage == null) {
-            viewModel.generate(room.id, style.id, room.name)
+    LaunchedEffect(room?.id, style?.id, customStyleDescription) {
+        if (room != null && selectedRoomState.hasStyleChoice && state.redesign == null && !state.isGenerating && state.errorMessage == null) {
+            viewModel.generate(room.id, style?.id, room.name, customStyleDescription)
         }
     }
 
@@ -228,7 +257,7 @@ fun GeneratingScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,
             ) {
-                Text("⚠", fontSize = 36.sp, color = AtelierColors.WarningOrange)
+                Text("!", fontSize = 36.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.WarningOrange)
                 Text("Generation failed", style = MaterialTheme.typography.headlineSmall, modifier = Modifier.padding(top = 20.dp))
                 Text(
                     state.errorMessage.orEmpty(),
@@ -239,8 +268,8 @@ fun GeneratingScreen(
                 PrimaryCapsuleButton(
                     text = "Try again",
                     onClick = {
-                        if (room != null && style != null) {
-                            viewModel.generate(room.id, style.id, room.name)
+                        if (room != null && selectedRoomState.hasStyleChoice) {
+                            viewModel.generate(room.id, style?.id, room.name, customStyleDescription)
                         }
                     },
                     modifier = Modifier.padding(top = 8.dp),
@@ -291,6 +320,19 @@ fun GeneratingScreen(
                         Icon(StyleCatalog.icon(style.id), contentDescription = null, tint = AtelierColors.AppleBlue, modifier = Modifier.size(16.dp))
                         Text(style.name, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AtelierColors.AppleBlue)
                     }
+                } else if (customStyleDescription != null) {
+                    Row(
+                        modifier = Modifier
+                            .padding(top = 28.dp)
+                            .clip(CircleShape)
+                            .background(AtelierColors.AppleBlue.copy(alpha = 0.08f))
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text("\"", fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = AtelierColors.AppleBlue)
+                        Text("Custom style", fontSize = 14.sp, fontWeight = FontWeight.Medium, color = AtelierColors.AppleBlue)
+                    }
                 }
             }
         }
@@ -306,6 +348,7 @@ fun ResultsScreen(
 ) {
     val room = selectedRoomState.room
     val style = selectedRoomState.selectedStyle
+    val customStyleDescription = selectedRoomState.customStyleDescription
     val redesign = selectedRoomState.redesign
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -346,6 +389,8 @@ fun ResultsScreen(
                     Text("Your redesign", style = MaterialTheme.typography.headlineMedium)
                     if (style != null) {
                         Text("${style.name} style applied to your room.", style = MaterialTheme.typography.bodyLarge)
+                    } else if (customStyleDescription != null) {
+                        Text("Custom style applied to your room.", style = MaterialTheme.typography.bodyLarge)
                     }
                 }
 
@@ -375,7 +420,7 @@ fun ResultsScreen(
 
                 PrimaryCapsuleButton(
                     text = when (saveState) {
-                        SaveState.Saving -> "Saving…"
+                        SaveState.Saving -> "Saving..."
                         SaveState.Saved -> "Saved"
                         else -> "Save to Photos"
                     },
@@ -504,7 +549,7 @@ private fun ProductCard(product: ShoppableProduct) {
             Text(product.shortTitle, fontSize = 15.sp, fontWeight = FontWeight.SemiBold, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 Text(product.priceText, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
-                Text("· ${product.color}", fontSize = 13.sp, color = AtelierColors.SecondaryText, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Text("- ${product.color}", fontSize = 13.sp, color = AtelierColors.SecondaryText, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
         }
         Icon(Icons.Rounded.OpenInNew, contentDescription = null, tint = AtelierColors.SecondaryText, modifier = Modifier.size(13.dp))

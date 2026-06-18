@@ -44,7 +44,8 @@ data class RedesignDto(
 @Serializable
 data class CreateRedesignRequestDto(
     val roomId: String,
-    val styleId: String,
+    val styleId: String? = null,
+    val customStyleDescription: String? = null,
     val products: List<RedesignProductDto> = emptyList(),
 )
 

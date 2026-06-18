@@ -83,6 +83,7 @@ class ShellViewModel(
         val current = _selectedRoomState.value
         _selectedRoomState.value = current.copy(
             selectedStyle = null,
+            customStyleDescription = null,
             selectedProducts = emptyList(),
             redesign = null,
         )
@@ -92,7 +93,17 @@ class ShellViewModel(
         val roomName = _selectedRoomState.value.room?.name
         _selectedRoomState.value = _selectedRoomState.value.copy(
             selectedStyle = style,
+            customStyleDescription = null,
             selectedProducts = ProductCatalog.bundle(roomName, style.id),
+            redesign = null,
+        )
+    }
+
+    fun selectCustomStyle(description: String) {
+        _selectedRoomState.value = _selectedRoomState.value.copy(
+            selectedStyle = null,
+            customStyleDescription = description.trim(),
+            selectedProducts = ProductCatalog.bundle(_selectedRoomState.value.room?.name, "custom"),
             redesign = null,
         )
     }
@@ -107,6 +118,7 @@ class ShellViewModel(
         val roomName = _selectedRoomState.value.room?.name
         _selectedRoomState.value = _selectedRoomState.value.copy(
             selectedStyle = style,
+            customStyleDescription = null,
             selectedProducts = ProductCatalog.bundle(roomName, style.id),
             redesign = redesign,
         )
