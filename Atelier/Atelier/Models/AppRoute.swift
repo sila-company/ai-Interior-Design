@@ -11,4 +11,7 @@ enum AppRoute: Hashable {
     case generating
     case results
     case membership
+    case privacy
+    case terms
+    case support
 }

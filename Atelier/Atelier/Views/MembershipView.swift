@@ -158,11 +158,11 @@ struct MembershipView: View {
                 .foregroundStyle(secondaryText)
 
             HStack(spacing: 16) {
-                if let privacyURL = LegalURLs.privacyPolicy {
-                    Button("Privacy Policy") { openURL(privacyURL) }
+                NavigationLink(value: AppRoute.privacy) {
+                    Text("Privacy Policy")
                 }
-                if let termsURL = LegalURLs.termsOfUse {
-                    Button("Terms of Use") { openURL(termsURL) }
+                NavigationLink(value: AppRoute.terms) {
+                    Text("Terms of Use")
                 }
             }
             .font(.system(size: 13, weight: .medium))

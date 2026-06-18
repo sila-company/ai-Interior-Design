@@ -54,6 +54,13 @@
 		A10000010000000000000044 /* MembershipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000044 /* MembershipView.swift */; };
 		A10000010000000000000045 /* MembershipPaywallSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000045 /* MembershipPaywallSheet.swift */; };
 		A10000010000000000000056 /* LegalLinksFooter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000048 /* LegalLinksFooter.swift */; };
+		A10000010000000000000057 /* AccountLegalLinksRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000049 /* AccountLegalLinksRow.swift */; };
+		A10000010000000000000058 /* EditNameSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000050 /* EditNameSheet.swift */; };
+		A10000010000000000000059 /* ChangePasswordSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000051 /* ChangePasswordSheet.swift */; };
+		A10000010000000000000060 /* LegalDocumentLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000052 /* LegalDocumentLayout.swift */; };
+		A10000010000000000000061 /* PrivacyPolicyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000053 /* PrivacyPolicyView.swift */; };
+		A10000010000000000000062 /* TermsOfUseView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000054 /* TermsOfUseView.swift */; };
+		A10000010000000000000063 /* SupportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000020000000000000055 /* SupportView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -105,6 +112,13 @@
 		A10000020000000000000045 /* MembershipPaywallSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MembershipPaywallSheet.swift; sourceTree = "<group>"; };
 		A10000020000000000000046 /* Atelier.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Atelier.storekit; sourceTree = "<group>"; };
 		A10000020000000000000048 /* LegalLinksFooter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalLinksFooter.swift; sourceTree = "<group>"; };
+		A10000020000000000000049 /* AccountLegalLinksRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountLegalLinksRow.swift; sourceTree = "<group>"; };
+		A10000020000000000000050 /* EditNameSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditNameSheet.swift; sourceTree = "<group>"; };
+		A10000020000000000000051 /* ChangePasswordSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChangePasswordSheet.swift; sourceTree = "<group>"; };
+		A10000020000000000000052 /* LegalDocumentLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LegalDocumentLayout.swift; sourceTree = "<group>"; };
+		A10000020000000000000053 /* PrivacyPolicyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PrivacyPolicyView.swift; sourceTree = "<group>"; };
+		A10000020000000000000054 /* TermsOfUseView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TermsOfUseView.swift; sourceTree = "<group>"; };
+		A10000020000000000000055 /* SupportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupportView.swift; sourceTree = "<group>"; };
 		A10000030000000000000001 /* Atelier.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Atelier.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -170,6 +184,11 @@
 				A10000020000000000000027 /* RoomDetailView.swift */,
 				A10000020000000000000044 /* MembershipView.swift */,
 				A10000020000000000000045 /* MembershipPaywallSheet.swift */,
+				A10000020000000000000050 /* EditNameSheet.swift */,
+				A10000020000000000000051 /* ChangePasswordSheet.swift */,
+				A10000020000000000000053 /* PrivacyPolicyView.swift */,
+				A10000020000000000000054 /* TermsOfUseView.swift */,
+				A10000020000000000000055 /* SupportView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -186,6 +205,8 @@
 				A10000020000000000000037 /* RoomBriefCard.swift */,
 				A10000020000000000000039 /* GenerationStatusBanner.swift */,
 				A10000020000000000000048 /* LegalLinksFooter.swift */,
+				A10000020000000000000049 /* AccountLegalLinksRow.swift */,
+				A10000020000000000000052 /* LegalDocumentLayout.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -358,6 +379,13 @@
 				A10000010000000000000044 /* MembershipView.swift in Sources */,
 				A10000010000000000000045 /* MembershipPaywallSheet.swift in Sources */,
 				A10000010000000000000056 /* LegalLinksFooter.swift in Sources */,
+				A10000010000000000000057 /* AccountLegalLinksRow.swift in Sources */,
+				A10000010000000000000058 /* EditNameSheet.swift in Sources */,
+				A10000010000000000000059 /* ChangePasswordSheet.swift in Sources */,
+				A10000010000000000000060 /* LegalDocumentLayout.swift in Sources */,
+				A10000010000000000000061 /* PrivacyPolicyView.swift in Sources */,
+				A10000010000000000000062 /* TermsOfUseView.swift in Sources */,
+				A10000010000000000000063 /* SupportView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

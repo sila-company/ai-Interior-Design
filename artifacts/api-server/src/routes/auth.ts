@@ -146,6 +146,80 @@ router.get("/me", requireAuth, async (req: AuthenticatedRequest, res) => {
   );
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().trim().min(1).max(120),
+});
+
+router.patch("/me", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const parsed = updateProfileSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ message: "Enter a valid name." });
+    return;
+  }
+
+  const db = getDb();
+  const [updated] = await db
+    .update(users)
+    .set({ name: parsed.data.name })
+    .where(eq(users.id, req.user!.id))
+    .returning({
+      id: users.id,
+      email: users.email,
+      name: users.name,
+    });
+
+  if (!updated) {
+    res.status(404).json({ message: "User not found." });
+    return;
+  }
+
+  const membership = await getMembershipSnapshot(updated.id);
+  res.json(
+    meResponseSchema.parse({
+      user: userSchema.parse(updated),
+      membership,
+    }),
+  );
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+});
+
+router.post("/change-password", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const parsed = changePasswordSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ message: "Enter your current password and a new password (8+ characters)." });
+    return;
+  }
+
+  const db = getDb();
+  const [user] = await db
+    .select({
+      id: users.id,
+      passwordHash: users.passwordHash,
+    })
+    .from(users)
+    .where(eq(users.id, req.user!.id))
+    .limit(1);
+
+  if (!user) {
+    res.status(404).json({ message: "User not found." });
+    return;
+  }
+
+  if (!(await verifyPassword(parsed.data.currentPassword, user.passwordHash))) {
+    res.status(401).json({ message: "Current password is incorrect." });
+    return;
+  }
+
+  const passwordHash = await hashPassword(parsed.data.newPassword);
+  await db.update(users).set({ passwordHash }).where(eq(users.id, user.id));
+
+  res.status(204).send();
+});
+
 router.delete("/me", requireAuth, async (req: AuthenticatedRequest, res) => {
   const db = getDb();
   const userId = req.user!.id;

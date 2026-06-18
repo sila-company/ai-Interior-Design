@@ -58,6 +58,15 @@ struct AtelierApp: App {
                             case .membership:
                                 MembershipView()
                                     .hidesTabBarWhenPushed()
+                            case .privacy:
+                                PrivacyPolicyView()
+                                    .hidesTabBarWhenPushed()
+                            case .terms:
+                                TermsOfUseView()
+                                    .hidesTabBarWhenPushed()
+                            case .support:
+                                SupportView()
+                                    .hidesTabBarWhenPushed()
                             }
                         }
                     }

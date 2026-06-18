@@ -10,6 +10,8 @@ struct AccountView: View {
     @State private var isSigningOut = false
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
+    @State private var showEditName = false
+    @State private var showChangePassword = false
     @State private var actionError: String?
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
@@ -27,8 +29,10 @@ struct AccountView: View {
 
                     if let user = auth.user {
                         profileCard(for: user)
+                        settingsCard
                         membershipCard
                         statsCard
+                        legalCard
                         signOutButton
                         deleteAccountButton
                     }
@@ -60,6 +64,14 @@ struct AccountView: View {
         } message: {
             Text("This permanently deletes your rooms, redesigns, and account data. If you have an Atelier Membership, you must cancel it separately in Settings → Apple ID → Subscriptions.")
         }
+        .sheet(isPresented: $showEditName) {
+            if let user = auth.user {
+                EditNameSheet(currentName: user.name)
+            }
+        }
+        .sheet(isPresented: $showChangePassword) {
+            ChangePasswordSheet()
+        }
     }
 
     private func profileCard(for user: AuthUser) -> some View {
@@ -82,6 +94,60 @@ struct AccountView: View {
         }
         .padding(18)
         .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    private var settingsCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Text("Settings")
+                .font(.system(size: 17, weight: .semibold))
+                .padding(.bottom, 12)
+
+            settingsRow(title: "Edit name", icon: "person") {
+                showEditName = true
+            }
+
+            Divider().padding(.leading, 44)
+
+            settingsRow(title: "Change password", icon: "lock") {
+                showChangePassword = true
+            }
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    private var legalCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Legal")
+                .font(.system(size: 17, weight: .semibold))
+
+            AccountLegalLinksRow()
+        }
+        .padding(18)
+        .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+    }
+
+    private func settingsRow(title: String, icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: icon)
+                    .font(.system(size: 16))
+                    .foregroundStyle(appleBlue)
+                    .frame(width: 28)
+
+                Text(title)
+                    .font(.system(size: 16))
+                    .foregroundStyle(Color(red: 0.114, green: 0.114, blue: 0.122))
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(secondaryText)
+            }
+            .padding(.vertical, 10)
+        }
+        .buttonStyle(.plain)
     }
 
     private var membershipCard: some View {

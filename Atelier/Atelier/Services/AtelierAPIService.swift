@@ -187,6 +187,41 @@ struct AtelierAPIService {
         )
     }
 
+    func updateProfile(name: String) async throws -> AuthUser {
+        let body = try JSONSerialization.data(withJSONObject: [
+            "name": name,
+        ])
+
+        struct MeResponse: Decodable {
+            let user: AuthUserResponse
+        }
+
+        let response: MeResponse = try await sendJSON(
+            path: "api/auth/me",
+            method: "PATCH",
+            body: body,
+            authorized: true,
+            decoder: MeResponse.self
+        )
+
+        return AuthUser(id: response.user.id, email: response.user.email, name: response.user.name)
+    }
+
+    func changePassword(currentPassword: String, newPassword: String) async throws {
+        let body = try JSONSerialization.data(withJSONObject: [
+            "currentPassword": currentPassword,
+            "newPassword": newPassword,
+        ])
+
+        _ = try await sendJSON(
+            path: "api/auth/change-password",
+            method: "POST",
+            body: body,
+            authorized: true,
+            decoder: EmptyResponse.self
+        )
+    }
+
     func fetchCurrentUser() async throws -> AuthUser {
         struct MeResponse: Decodable {
             let user: AuthUserResponse

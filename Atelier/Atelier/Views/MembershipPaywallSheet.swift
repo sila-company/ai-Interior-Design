@@ -3,16 +3,16 @@ import SwiftUI
 struct MembershipPaywallSheet: View {
     @Environment(SubscriptionManager.self) private var subscription
     @Environment(\.dismiss) private var dismiss
-    @Environment(\.openURL) private var openURL
 
     @State private var actionError: String?
+    @State private var legalPath = NavigationPath()
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
     private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
     private let secondaryText = Color(red: 0.431, green: 0.431, blue: 0.451)
 
     var body: some View {
-        NavigationStack {
+        NavigationStack(path: $legalPath) {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 20) {
                     VStack(alignment: .leading, spacing: 8) {
@@ -90,11 +90,11 @@ struct MembershipPaywallSheet: View {
                         .foregroundStyle(secondaryText)
 
                     HStack(spacing: 16) {
-                        if let privacyURL = LegalURLs.privacyPolicy {
-                            Button("Privacy") { openURL(privacyURL) }
+                        NavigationLink(value: AppRoute.privacy) {
+                            Text("Privacy")
                         }
-                        if let termsURL = LegalURLs.termsOfUse {
-                            Button("Terms") { openURL(termsURL) }
+                        NavigationLink(value: AppRoute.terms) {
+                            Text("Terms")
                         }
                     }
                     .font(.system(size: 13, weight: .medium))
@@ -103,6 +103,7 @@ struct MembershipPaywallSheet: View {
                 .padding(24)
             }
             .background(AppBackground())
+            .legalPageDestinations()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Close") { dismiss() }

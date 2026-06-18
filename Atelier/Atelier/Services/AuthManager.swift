@@ -57,4 +57,12 @@ final class AuthManager {
         KeychainStore.clearToken()
         user = nil
     }
+
+    func updateName(_ name: String) async throws {
+        user = try await api.updateProfile(name: name)
+    }
+
+    func changePassword(currentPassword: String, newPassword: String) async throws {
+        try await api.changePassword(currentPassword: currentPassword, newPassword: newPassword)
+    }
 }
