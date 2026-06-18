@@ -39,7 +39,7 @@ struct ResultsView: View {
                         .frame(maxWidth: .infinity)
                 }
 
-                if !flow.selectedProducts.isEmpty {
+                if !displayedProducts.isEmpty {
                     shoppableProductsSection
                 }
 
@@ -136,6 +136,16 @@ struct ResultsView: View {
         !revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    private var displayedProducts: [ShoppableProduct] {
+        var seenCategories = Set<String>()
+        return flow.selectedProducts.filter { product in
+            let category = product.category.lowercased()
+            guard !seenCategories.contains(category) else { return false }
+            seenCategories.insert(category)
+            return true
+        }
+    }
+
     private var shoppableProductsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
@@ -150,7 +160,7 @@ struct ResultsView: View {
             }
 
             VStack(spacing: 12) {
-                ForEach(flow.selectedProducts) { product in
+                ForEach(displayedProducts) { product in
                     productCard(product)
                 }
             }

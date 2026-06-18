@@ -311,7 +311,7 @@ struct AtelierAPIService {
                let image = UIImage(data: data) {
                 return GeneratedRedesignResult(
                     image: image,
-                    products: response.products?.compactMap(mapProduct) ?? []
+                    products: uniqueProductsByCategory(response.products?.compactMap(mapProduct) ?? [])
                 )
             }
         }
@@ -321,7 +321,7 @@ struct AtelierAPIService {
            let image = UIImage(data: imageData) {
             return GeneratedRedesignResult(
                 image: image,
-                products: response.products?.compactMap(mapProduct) ?? []
+                products: uniqueProductsByCategory(response.products?.compactMap(mapProduct) ?? [])
             )
         }
 
@@ -341,8 +341,18 @@ struct AtelierAPIService {
         }
         return GeneratedRedesignResult(
             image: image,
-            products: response.products?.compactMap(mapProduct) ?? []
+            products: uniqueProductsByCategory(response.products?.compactMap(mapProduct) ?? [])
         )
+    }
+
+    private func uniqueProductsByCategory(_ products: [ShoppableProduct]) -> [ShoppableProduct] {
+        var seenCategories = Set<String>()
+        return products.filter { product in
+            let category = product.category.lowercased()
+            guard !seenCategories.contains(category) else { return false }
+            seenCategories.insert(category)
+            return true
+        }
     }
 
     private func mapProduct(_ product: ProductResponse) -> ShoppableProduct? {
