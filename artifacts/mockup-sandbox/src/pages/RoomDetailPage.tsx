@@ -1,12 +1,94 @@
-import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, Trash2 } from "lucide-react";
+import { useState } from "react";
 import { Redirect, useRoute } from "wouter";
 
 import { AuthImage } from "@/components/AuthImage";
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAppFlow } from "@/context/AppFlowContext";
-import { getRoom, listDesignStyles } from "@/lib/api";
+import { deleteRedesign, getRoom, listDesignStyles, type Redesign } from "@/lib/api";
+
+function RedesignCard({
+  redesign,
+  styleName,
+  roomId,
+  onView,
+}: {
+  redesign: Redesign;
+  styleName: string;
+  roomId: string;
+  onView: () => void;
+}) {
+  const queryClient = useQueryClient();
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
+
+  const deleteMutation = useMutation({
+    mutationFn: () => deleteRedesign(redesign.id),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["room", roomId] });
+      void queryClient.invalidateQueries({ queryKey: ["redesigns"] });
+    },
+  });
+
+  return (
+    <div className="group relative overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+      <button type="button" onClick={onView} className="w-full text-left">
+        <AuthImage
+          src={redesign.resultImageUrl}
+          alt={styleName}
+          className="aspect-[4/3] w-full object-cover"
+        />
+        <div className="p-3">
+          <p className="text-[14px] font-semibold text-[#1D1D1F]">
+            {styleName}
+          </p>
+          <p className="mt-1 text-[12px] text-[#86868B]">
+            {new Date(redesign.createdAt).toLocaleDateString(undefined, {
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
+        </div>
+      </button>
+
+      {confirmingDelete ? (
+        <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-2 bg-white/95 px-3 py-2.5 backdrop-blur-sm">
+          <p className="text-[12px] text-[#1D1D1F]">Delete this redesign?</p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setConfirmingDelete(false)}
+              className="rounded-full bg-black/[0.06] px-2.5 py-1 text-[12px] font-medium text-[#1D1D1F]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              disabled={deleteMutation.isPending}
+              onClick={() => deleteMutation.mutate()}
+              className="rounded-full bg-red-500 px-2.5 py-1 text-[12px] font-medium text-white disabled:opacity-50"
+            >
+              {deleteMutation.isPending ? "Deleting…" : "Delete"}
+            </button>
+          </div>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            setConfirmingDelete(true);
+          }}
+          className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/40 text-white opacity-0 backdrop-blur-sm transition group-hover:opacity-100"
+          aria-label="Delete redesign"
+        >
+          <Trash2 className="h-3 w-3" />
+        </button>
+      )}
+    </div>
+  );
+}
 
 export function RoomDetailPage() {
   const [, params] = useRoute("/rooms/:roomId");
@@ -88,32 +170,13 @@ export function RoomDetailPage() {
             {redesigns.length ? (
               <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {redesigns.map((redesign) => (
-                  <button
+                  <RedesignCard
                     key={redesign.id}
-                    type="button"
-                    onClick={() => viewSavedRedesign(room, redesign)}
-                    className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
-                  >
-                    <AuthImage
-                      src={redesign.resultImageUrl}
-                      alt={styleNames.get(redesign.styleId) ?? "Redesign"}
-                      className="aspect-[4/3] w-full object-cover"
-                    />
-                    <div className="p-3">
-                      <p className="text-[14px] font-semibold text-[#1D1D1F]">
-                        {styleNames.get(redesign.styleId) ?? redesign.styleId}
-                      </p>
-                      <p className="mt-1 text-[12px] text-[#86868B]">
-                        {new Date(redesign.createdAt).toLocaleDateString(
-                          undefined,
-                          {
-                            month: "short",
-                            day: "numeric",
-                          },
-                        )}
-                      </p>
-                    </div>
-                  </button>
+                    redesign={redesign}
+                    styleName={styleNames.get(redesign.styleId) ?? redesign.styleId}
+                    roomId={room.id}
+                    onView={() => viewSavedRedesign(room, redesign)}
+                  />
                 ))}
               </div>
             ) : (

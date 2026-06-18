@@ -6,6 +6,9 @@ struct ResultsView: View {
 
     @State private var saveState: SaveState = .idle
     @State private var showShareSheet = false
+    @State private var revisionInstruction = ""
+    @State private var isRevising = false
+    @State private var revisionError: String?
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
     private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
@@ -40,6 +43,8 @@ struct ResultsView: View {
                     shoppableProductsSection
                 }
 
+                iterationSection
+
                 actionButtons
 
                 if case .failed(let message) = saveState {
@@ -65,6 +70,70 @@ struct ResultsView: View {
                 ShareSheet(items: [redesigned])
             }
         }
+    }
+
+    private var iterationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Adjust the design")
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(primaryText)
+
+                Text("Tell Atelier what to change. It will regenerate using only live inventory products.")
+                    .font(.system(size: 14))
+                    .foregroundStyle(secondaryText)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            TextField("Example: make it warmer, use less wall art", text: $revisionInstruction, axis: .vertical)
+                .font(.system(size: 15))
+                .lineLimit(2...4)
+                .padding(14)
+                .background(Color.black.opacity(0.04), in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .disabled(isRevising)
+
+            Button {
+                reviseDesign()
+            } label: {
+                HStack(spacing: 8) {
+                    if isRevising {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "wand.and.sparkles")
+                    }
+                    Text(isRevising ? "Updating design" : "Update redesign")
+                }
+                .font(.system(size: 15, weight: .medium))
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 14)
+            }
+            .buttonStyle(.plain)
+            .foregroundStyle(.white)
+            .background(canRevise ? appleBlue : appleBlue.opacity(0.35), in: Capsule())
+            .disabled(!canRevise)
+
+            if let revisionError {
+                Text(revisionError)
+                    .font(.system(size: 13))
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(16)
+        .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20, style: .continuous)
+                .stroke(Color.black.opacity(0.06), lineWidth: 1)
+        }
+        .shadow(color: .black.opacity(0.04), radius: 10, y: 5)
+    }
+
+    private var canRevise: Bool {
+        !isRevising &&
+        flow.room != nil &&
+        flow.selectedStyle != nil &&
+        !revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
     private var shoppableProductsSection: some View {
@@ -289,6 +358,39 @@ struct ResultsView: View {
                     } else {
                         saveState = .failed(error?.localizedDescription ?? "Could not save photo.")
                     }
+                }
+            }
+        }
+    }
+
+    private func reviseDesign() {
+        guard let room = flow.room, flow.hasStyleChoice else { return }
+
+        let instruction = revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !instruction.isEmpty else { return }
+
+        isRevising = true
+        revisionError = nil
+
+        Task {
+            do {
+                let result = try await AtelierAPIService().generateRedesign(
+                    roomId: room.id,
+                    style: flow.selectedStyle,
+                    customStyleDescription: flow.customStyleDescription,
+                    revisionInstruction: instruction
+                )
+                await MainActor.run {
+                    flow.selectedProducts = result.products
+                    flow.redesignedImage = result.image
+                    revisionInstruction = ""
+                    isRevising = false
+                    saveState = .idle
+                }
+            } catch {
+                await MainActor.run {
+                    revisionError = error.localizedDescription
+                    isRevising = false
                 }
             }
         }

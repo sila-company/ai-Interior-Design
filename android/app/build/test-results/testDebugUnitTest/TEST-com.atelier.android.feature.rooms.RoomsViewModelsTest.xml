@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.atelier.android.feature.rooms.RoomsViewModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-16T06:11:19.353Z" hostname="DESKTOP-3MLASM6" time="0.019">
+<testsuite name="com.atelier.android.feature.rooms.RoomsViewModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:50.467Z" hostname="DESKTOP-3MLASM6" time="0.014">
   <properties/>
-  <testcase name="logoutClearsLocalSession" classname="com.atelier.android.feature.rooms.RoomsViewModelsTest" time="0.01"/>
-  <testcase name="roomsListMapsPopulatedState" classname="com.atelier.android.feature.rooms.RoomsViewModelsTest" time="0.006"/>
-  <testcase name="roomsListMapsEmptyState" classname="com.atelier.android.feature.rooms.RoomsViewModelsTest" time="0.002"/>
+  <testcase name="logoutClearsLocalSession" classname="com.atelier.android.feature.rooms.RoomsViewModelsTest" time="0.007"/>
+  <testcase name="roomsListMapsPopulatedState" classname="com.atelier.android.feature.rooms.RoomsViewModelsTest" time="0.004"/>
+  <testcase name="roomsListMapsEmptyState" classname="com.atelier.android.feature.rooms.RoomsViewModelsTest" time="0.003"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

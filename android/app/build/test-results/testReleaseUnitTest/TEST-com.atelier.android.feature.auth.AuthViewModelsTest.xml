@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.atelier.android.feature.auth.AuthViewModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:52.121Z" hostname="DESKTOP-3MLASM6" time="0.02">
+  <properties/>
+  <testcase name="loginSuccessRoutesAuthenticatedUser" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.013"/>
+  <testcase name="loginFailureMapsInlineError" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.004"/>
+  <testcase name="registerSuccessRoutesAuthenticatedUser" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

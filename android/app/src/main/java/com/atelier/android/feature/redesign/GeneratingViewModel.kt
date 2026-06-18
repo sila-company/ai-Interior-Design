@@ -3,6 +3,7 @@ package com.atelier.android.feature.redesign
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.atelier.android.core.catalog.ProductCatalog
 import com.atelier.android.core.model.CreateRedesignRequestDto
 import com.atelier.android.core.network.RedesignRepository
 import com.atelier.android.core.network.userMessage
@@ -22,16 +23,22 @@ class GeneratingViewModel(
 
     private var rotationJob: Job? = null
 
-    fun generate(roomId: String, styleId: String) {
+    fun generate(roomId: String, styleId: String, roomName: String?) {
         if (_uiState.value.isGenerating) return
 
         _uiState.value = GeneratingUiState(isGenerating = true)
         startStatusRotation()
 
+        val products = ProductCatalog.bundle(roomName, styleId)
+
         viewModelScope.launch {
             runCatching {
                 redesignRepository.createRedesign(
-                    CreateRedesignRequestDto(roomId = roomId, styleId = styleId),
+                    CreateRedesignRequestDto(
+                        roomId = roomId,
+                        styleId = styleId,
+                        products = ProductCatalog.promptBrief(products),
+                    ),
                 )
             }
                 .onSuccess { redesign ->

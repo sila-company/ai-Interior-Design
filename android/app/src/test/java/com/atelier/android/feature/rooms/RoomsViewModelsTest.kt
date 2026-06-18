@@ -2,9 +2,11 @@ package com.atelier.android.feature.rooms
 
 import com.atelier.android.MainDispatcherRule
 import com.atelier.android.core.auth.AuthRepository
+import com.atelier.android.core.model.RedesignDto
 import com.atelier.android.core.model.RoomDetailResponseDto
 import com.atelier.android.core.model.RoomDto
 import com.atelier.android.core.model.UserDto
+import com.atelier.android.core.network.RedesignRepository
 import com.atelier.android.core.network.RoomsRepository
 import kotlinx.coroutines.test.runTest
 import okhttp3.MultipartBody
@@ -21,7 +23,7 @@ class RoomsViewModelsTest {
 
     @Test
     fun roomsListMapsEmptyState() = runTest {
-        val viewModel = RoomsViewModel(FakeRoomsRepository(emptyList()), FakeAuthRepository()) {}
+        val viewModel = RoomsViewModel(FakeRoomsRepository(emptyList()), FakeRedesignRepository(), FakeAuthRepository()) {}
 
         assertFalse(viewModel.uiState.value.isLoading)
         assertTrue(viewModel.uiState.value.isEmpty)
@@ -30,7 +32,7 @@ class RoomsViewModelsTest {
     @Test
     fun roomsListMapsPopulatedState() = runTest {
         val rooms = listOf(room("r1", "Living room"))
-        val viewModel = RoomsViewModel(FakeRoomsRepository(rooms), FakeAuthRepository()) {}
+        val viewModel = RoomsViewModel(FakeRoomsRepository(rooms), FakeRedesignRepository(), FakeAuthRepository()) {}
 
         assertEquals(rooms, viewModel.uiState.value.rooms)
         assertFalse(viewModel.uiState.value.isEmpty)
@@ -40,7 +42,7 @@ class RoomsViewModelsTest {
     fun logoutClearsLocalSession() = runTest {
         val authRepository = FakeAuthRepository()
         var routedOut = false
-        val viewModel = RoomsViewModel(FakeRoomsRepository(emptyList()), authRepository) {
+        val viewModel = RoomsViewModel(FakeRoomsRepository(emptyList()), FakeRedesignRepository(), authRepository) {
             routedOut = true
         }
 
@@ -66,6 +68,14 @@ private class FakeRoomsRepository(private val rooms: List<RoomDto>) : RoomsRepos
         RoomDetailResponseDto(room(roomId, "Room"), emptyList())
     override suspend fun createRoom(name: RequestBody, image: MultipartBody.Part): RoomDto =
         room("created", "Created")
+}
+
+private class FakeRedesignRepository(
+    private val redesigns: List<RedesignDto> = emptyList(),
+) : RedesignRepository {
+    override suspend fun redesigns(): List<RedesignDto> = redesigns
+    override suspend fun createRedesign(body: com.atelier.android.core.model.CreateRedesignRequestDto): RedesignDto =
+        error("Not used")
 }
 
 private class FakeAuthRepository : AuthRepository {

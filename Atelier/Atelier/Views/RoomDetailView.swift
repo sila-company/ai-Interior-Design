@@ -31,6 +31,8 @@ struct RoomDetailView: View {
                             .font(.system(size: 15))
                             .foregroundStyle(Color(red: 0.431, green: 0.431, blue: 0.451))
                     }
+
+                    RoomBriefCard(preferences: room.preferences)
                 }
 
                 Button {
@@ -115,7 +117,7 @@ struct RoomDetailView: View {
     }
 
     private func openRedesign(_ redesign: SavedRedesign) {
-        guard let style = DesignStyle.catalog.first(where: { $0.id == redesign.styleId }) else { return }
+        guard let style = DesignStyle.from(id: redesign.styleId) else { return }
 
         Task {
             do {
@@ -128,6 +130,6 @@ struct RoomDetailView: View {
     }
 
     private func styleName(for styleId: String) -> String {
-        DesignStyle.catalog.first(where: { $0.id == styleId })?.name ?? styleId
+        DesignStyle.from(id: styleId)?.name ?? styleId
     }
 }

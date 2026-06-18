@@ -1,9 +1,20 @@
 -- Merging decision tree log ---
+provider#androidx.core.content.FileProvider
+INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:11:9-19:20
+	android:grantUriPermissions
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:15:13-47
+	android:authorities
+		INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:13:13-64
+	android:exported
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:14:13-37
+	android:name
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:12:13-62
 manifest
-ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-21:12
-INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-21:12
-INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-21:12
-INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-21:12
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-30:12
+INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-30:12
+INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-30:12
+INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:1:1-30:12
 MERGED from [androidx.navigation:navigation-common:2.8.2] C:\Users\qais4\.gradle\caches\9.3.0\transforms\4ad45e242d75df0799f3bfcf92d86cb6\workspace\transformed\navigation-common-2.8.2\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-runtime:2.8.2] C:\Users\qais4\.gradle\caches\9.3.0\transforms\ce20c10605d560eae2264006a63357e8\workspace\transformed\navigation-runtime-2.8.2\AndroidManifest.xml:17:1-22:12
 MERGED from [androidx.navigation:navigation-common-ktx:2.8.2] C:\Users\qais4\.gradle\caches\9.3.0\transforms\c281f45d29cd505f9064655af3335663\workspace\transformed\navigation-common-ktx-2.8.2\AndroidManifest.xml:2:1-7:12
@@ -79,8 +90,8 @@ ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app
 	android:name
 		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:2:22-64
 application
-ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:4:5-20:19
-INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:4:5-20:19
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:4:5-29:19
+INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:4:5-29:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] C:\Users\qais4\.gradle\caches\9.3.0\transforms\528bac0597df9ba9f4dd165fe9d1b8ce\workspace\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.compose.ui:ui-tooling-android:1.7.3] C:\Users\qais4\.gradle\caches\9.3.0\transforms\528bac0597df9ba9f4dd165fe9d1b8ce\workspace\transformed\ui-tooling-release\AndroidManifest.xml:22:5-26:19
 MERGED from [androidx.emoji2:emoji2:1.3.0] C:\Users\qais4\.gradle\caches\9.3.0\transforms\15befd9aa7c5c793a75f447c2f15843c\workspace\transformed\emoji2-1.3.0\AndroidManifest.xml:23:5-33:19
@@ -112,23 +123,29 @@ MERGED from [androidx.startup:startup-runtime:1.1.1] C:\Users\qais4\.gradle\cach
 	android:name
 		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:5:9-43
 activity#com.atelier.android.MainActivity
-ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:11:9-19:20
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:20:9-28:20
 	android:exported
-		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:13:13-36
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:22:13-36
 	android:theme
-		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:14:13-49
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:23:13-49
 	android:name
-		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:12:13-41
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:21:13-41
 intent-filter#action:name:android.intent.action.MAIN+category:name:android.intent.category.LAUNCHER
-ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:15:13-18:29
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:24:13-27:29
 action#android.intent.action.MAIN
-ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:16:17-69
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:25:17-69
 	android:name
-		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:16:25-66
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:25:25-66
 category#android.intent.category.LAUNCHER
-ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:17:17-77
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:26:17-77
 	android:name
-		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:17:27-74
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:26:27-74
+meta-data#android.support.FILE_PROVIDER_PATHS
+ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:16:13-18:54
+	android:resource
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:18:17-51
+	android:name
+		ADDED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml:17:17-67
 uses-sdk
 INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml reason: use-sdk injection requested
 INJECTED from C:\Users\qais4\Desktop\apps\interiorai\ai-Interior-Design\android\app\src\main\AndroidManifest.xml

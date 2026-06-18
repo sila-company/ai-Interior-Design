@@ -2,34 +2,21 @@ import SwiftUI
 
 struct GeneratingView: View {
     @Environment(AppFlow.self) private var flow
+    @Environment(RedesignGenerationStore.self) private var generation
 
-    @State private var errorMessage: String?
-    @State private var statusText = "Analyzing your room…"
-    @State private var hasStarted = false
-
-    private let service = AtelierAPIService()
-    private let statusMessages = [
-        "Analyzing your room…",
-        "Matching shoppable products…",
-        "Staging only inventory items…",
-        "Checking product accuracy…",
-        "Almost there…",
-    ]
+    private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
+    private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
+    private let secondaryText = Color(red: 0.431, green: 0.431, blue: 0.451)
 
     var body: some View {
         Group {
-            if let errorMessage {
-                errorView(message: errorMessage)
+            if case .failed = generation.status {
+                errorView
             } else {
                 loadingView
             }
         }
-        .navigationBarBackButtonHidden(errorMessage == nil)
-        .task {
-            guard !hasStarted else { return }
-            hasStarted = true
-            await runGeneration()
-        }
+        .navigationBarBackButtonHidden(generation.isActive)
     }
 
     private var loadingView: some View {
@@ -37,26 +24,37 @@ struct GeneratingView: View {
             AppBackground()
 
             VStack(spacing: 28) {
-                ZStack {
-                    Circle()
-                        .stroke(Color.black.opacity(0.06), lineWidth: 4)
-                        .frame(width: 72, height: 72)
+                VStack(spacing: 16) {
+                    Text("\(Int(generation.progress * 100))%")
+                        .font(.system(size: 34, weight: .semibold))
+                        .foregroundStyle(primaryText)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.linear(duration: 0.25), value: generation.progress)
 
-                    ProgressView()
-                        .controlSize(.large)
-                        .tint(Color(red: 0, green: 0.443, blue: 0.890))
+                    ProgressView(value: generation.progress)
+                        .progressViewStyle(.linear)
+                        .tint(appleBlue)
+                        .frame(maxWidth: 280)
+                        .animation(.linear(duration: 0.25), value: generation.progress)
+
+                    if let remaining = generation.estimatedTimeRemainingText {
+                        Text(remaining)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundStyle(secondaryText)
+                    }
                 }
 
                 VStack(spacing: 10) {
                     Text("Creating your redesign")
                         .font(.system(size: 22, weight: .semibold))
-                        .foregroundStyle(Color(red: 0.114, green: 0.114, blue: 0.122))
+                        .foregroundStyle(primaryText)
 
-                    Text(statusText)
+                    Text(generation.statusMessage)
                         .font(.system(size: 16))
-                        .foregroundStyle(Color(red: 0.431, green: 0.431, blue: 0.451))
+                        .foregroundStyle(secondaryText)
                         .multilineTextAlignment(.center)
-                        .animation(.easeInOut, value: statusText)
+                        .animation(.easeInOut, value: generation.statusMessage)
                 }
 
                 if let style = flow.selectedStyle {
@@ -65,17 +63,49 @@ struct GeneratingView: View {
                         Text(style.name)
                     }
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundStyle(Color(red: 0, green: 0.443, blue: 0.890))
+                    .foregroundStyle(appleBlue)
                     .padding(.horizontal, 14)
                     .padding(.vertical, 8)
-                    .background(Color(red: 0, green: 0.443, blue: 0.890).opacity(0.08), in: Capsule())
+                    .background(appleBlue.opacity(0.08), in: Capsule())
+                } else if flow.customStyleDescription != nil {
+                    HStack(spacing: 8) {
+                        Image(systemName: "text.quote")
+                        Text("Custom style")
+                    }
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(appleBlue)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(appleBlue.opacity(0.08), in: Capsule())
+                }
+
+                if generation.isActive {
+                    Button {
+                        generation.moveToBackground(flow: flow)
+                    } label: {
+                        Text("Continue browsing")
+                            .font(.system(size: 15, weight: .medium))
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundStyle(appleBlue)
+                    .background(appleBlue.opacity(0.08), in: Capsule())
+                    .padding(.top, 8)
+                    .frame(maxWidth: 280)
+
+                    Text("We'll keep working while you explore Home or your rooms. Most redesigns finish in about a minute.")
+                        .font(.system(size: 13))
+                        .foregroundStyle(secondaryText)
+                        .multilineTextAlignment(.center)
+                        .frame(maxWidth: 280)
                 }
             }
             .padding(32)
         }
     }
 
-    private func errorView(message: String) -> some View {
+    private var errorView: some View {
         ZStack {
             AppBackground()
 
@@ -87,18 +117,13 @@ struct GeneratingView: View {
                 Text("Generation failed")
                     .font(.system(size: 22, weight: .semibold))
 
-        Text(message)
-            .font(.system(size: 15))
-            .foregroundStyle(Color(red: 0.431, green: 0.431, blue: 0.451))
-            .multilineTextAlignment(.center)
+                Text(generation.statusMessage)
+                    .font(.system(size: 15))
+                    .foregroundStyle(secondaryText)
+                    .multilineTextAlignment(.center)
 
                 Button {
-                    errorMessage = nil
-                    hasStarted = false
-                    Task {
-                        hasStarted = true
-                        await runGeneration()
-                    }
+                    generation.retry(flow: flow)
                 } label: {
                     Text("Try again")
                         .font(.system(size: 15, weight: .medium))
@@ -107,62 +132,26 @@ struct GeneratingView: View {
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.white)
-                .background(Color(red: 0, green: 0.443, blue: 0.890), in: Capsule())
+                .background(appleBlue, in: Capsule())
                 .padding(.top, 8)
+
+                Button("Go to Home") {
+                    generation.moveToBackground(flow: flow)
+                }
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(appleBlue)
             }
             .padding(32)
         }
         .navigationTitle("Error")
         .navigationBarTitleDisplayMode(.inline)
     }
-
-    private func runGeneration() async {
-        guard let room = flow.room, let style = flow.selectedStyle else {
-            await MainActor.run {
-                errorMessage = "Missing room or style."
-            }
-            return
-        }
-
-        errorMessage = nil
-
-        let rotationTask = Task {
-            var index = 0
-            while !Task.isCancelled {
-                try? await Task.sleep(for: .seconds(3))
-                index = (index + 1) % statusMessages.count
-                await MainActor.run {
-                    statusText = statusMessages[index]
-                }
-            }
-        }
-
-        defer { rotationTask.cancel() }
-
-        do {
-            let image = try await service.generateRedesign(
-                roomId: room.id,
-                style: style,
-                products: flow.selectedProducts
-            )
-            await MainActor.run {
-                flow.completeGeneration(with: image)
-            }
-        } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-            }
-        }
-    }
 }
 
 #Preview {
-    let flow = AppFlow()
-    flow.roomImage = UIImage(systemName: "photo")
-    flow.selectedStyle = .catalog[0]
-
-    return NavigationStack {
+    NavigationStack {
         GeneratingView()
-            .environment(flow)
+            .environment(AppFlow())
+            .environment(RedesignGenerationStore())
     }
 }

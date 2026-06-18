@@ -43,7 +43,7 @@ class ShellViewModelTest {
         val room = RoomDto("r1", "Living room", "/api/uploads/r1.jpg", "2026-06-15T00:00:00Z", 0)
         val style = StyleDto("modern", "Modern", "Clean lines", "square.grid.2x2")
 
-        viewModel.selectRoom(room, "content://room")
+        viewModel.openRoom(room, "content://room")
         viewModel.selectStyle(style)
 
         assertEquals(room, viewModel.selectedRoomState.value.room)

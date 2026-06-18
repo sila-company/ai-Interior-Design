@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.atelier.android.AppContainer
+import com.atelier.android.core.design.AppBackground
 import com.atelier.android.core.session.AppDestination
 import com.atelier.android.core.session.SessionState
 import com.atelier.android.feature.auth.LandingScreen
@@ -22,10 +23,10 @@ import com.atelier.android.feature.auth.LoginScreen
 import com.atelier.android.feature.auth.LoginViewModel
 import com.atelier.android.feature.auth.RegisterScreen
 import com.atelier.android.feature.auth.RegisterViewModel
-import com.atelier.android.feature.rooms.AccountScreen
 import com.atelier.android.feature.rooms.AddRoomScreen
 import com.atelier.android.feature.rooms.AddRoomViewModel
-import com.atelier.android.feature.rooms.HomeScreen
+import com.atelier.android.feature.rooms.RoomDetailScreen
+import com.atelier.android.feature.rooms.RoomDetailViewModel
 import com.atelier.android.feature.rooms.RoomsScreen
 import com.atelier.android.feature.rooms.RoomsViewModel
 import com.atelier.android.feature.redesign.GeneratingScreen
@@ -48,7 +49,7 @@ fun AtelierShell(
         val destination = when (sessionState) {
             SessionState.Loading -> AppDestination.Splash
             SessionState.Unauthenticated -> AppDestination.Landing
-            is SessionState.Authenticated -> AppDestination.Home
+            is SessionState.Authenticated -> AppDestination.Rooms
         }
         navController.navigate(destination.route) {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -89,53 +90,30 @@ fun AtelierShell(
             )
             RegisterScreen(registerViewModel)
         }
-        composable(AppDestination.Home.route) {
+        composable(AppDestination.Rooms.route) {
             val user = (sessionState as? SessionState.Authenticated)?.user
             val roomsViewModel: RoomsViewModel = viewModel(
                 factory = RoomsViewModel.Factory(
                     roomsRepository = container.roomsRepository,
-                    authRepository = container.authRepository,
-                    onLoggedOut = { shellViewModel.setUnauthenticated() },
-                ),
-            )
-            HomeScreen(
-                userName = user?.name.orEmpty(),
-                viewModel = roomsViewModel,
-                onAddRoom = { navController.navigate(AppDestination.AddRoom.route) },
-                onBrowseRooms = { navController.navigate(AppDestination.Rooms.route) },
-                onAccount = { navController.navigate(AppDestination.Account.route) },
-                onRoomSelected = { room ->
-                    shellViewModel.selectRoom(room)
-                    navController.navigate(AppDestination.StyleSelection.route)
-                },
-            )
-        }
-        composable(AppDestination.Rooms.route) {
-            val roomsViewModel: RoomsViewModel = viewModel(
-                factory = RoomsViewModel.Factory(
-                    roomsRepository = container.roomsRepository,
+                    redesignRepository = container.redesignRepository,
                     authRepository = container.authRepository,
                     onLoggedOut = { shellViewModel.setUnauthenticated() },
                 ),
             )
             RoomsScreen(
-                viewModel = roomsViewModel,
-                onHome = { navController.navigate(AppDestination.Home.route) },
-                onAccount = { navController.navigate(AppDestination.Account.route) },
-                onAddRoom = { navController.navigate(AppDestination.AddRoom.route) },
-                onRoomSelected = { room ->
-                    shellViewModel.selectRoom(room)
-                    navController.navigate(AppDestination.StyleSelection.route)
-                },
-            )
-        }
-        composable(AppDestination.Account.route) {
-            val user = (sessionState as? SessionState.Authenticated)?.user
-            AccountScreen(
                 userName = user?.name.orEmpty(),
-                onHome = { navController.navigate(AppDestination.Home.route) },
-                onRooms = { navController.navigate(AppDestination.Rooms.route) },
-                onLogout = { shellViewModel.logout() },
+                viewModel = roomsViewModel,
+                onAddRoom = { navController.navigate(AppDestination.AddRoom.route) },
+                onSignOut = { shellViewModel.logout() },
+                onRoomSelected = { room ->
+                    shellViewModel.openRoom(room)
+                    navController.navigate(AppDestination.RoomDetail.route)
+                },
+                onRecentRedesignSelected = { room, redesign ->
+                    shellViewModel.openRoom(room)
+                    shellViewModel.viewSavedRedesign(redesign, redesign.styleId)
+                    navController.navigate(AppDestination.Results.route)
+                },
             )
         }
         composable(AppDestination.AddRoom.route) {
@@ -144,14 +122,32 @@ fun AtelierShell(
                     roomsRepository = container.roomsRepository,
                     contentResolver = container.context.contentResolver,
                     onRoomCreated = { room, uri ->
-                        shellViewModel.selectRoom(room, uri?.toString())
+                        shellViewModel.beginWithRoom(room, uri?.toString())
                         navController.navigate(AppDestination.StyleSelection.route) {
-                            popUpTo(AppDestination.Home.route)
+                            popUpTo(AppDestination.Rooms.route)
                         }
                     },
                 ),
             )
             AddRoomScreen(addRoomViewModel)
+        }
+        composable(AppDestination.RoomDetail.route) {
+            val roomId = selectedRoomState.room?.id ?: return@composable
+            val roomDetailViewModel: RoomDetailViewModel = viewModel(
+                factory = RoomDetailViewModel.Factory(container.roomsRepository, roomId),
+            )
+            RoomDetailScreen(
+                selectedRoomState = selectedRoomState,
+                viewModel = roomDetailViewModel,
+                onCreateRedesign = {
+                    shellViewModel.beginNewRedesign()
+                    navController.navigate(AppDestination.StyleSelection.route)
+                },
+                onRedesignSelected = { redesign ->
+                    shellViewModel.viewSavedRedesign(redesign, redesign.styleId)
+                    navController.navigate(AppDestination.Results.route)
+                },
+            )
         }
         composable(AppDestination.StyleSelection.route) {
             val styleSelectionViewModel: StyleSelectionViewModel = viewModel(
@@ -191,11 +187,18 @@ fun AtelierShell(
             ResultsScreen(
                 selectedRoomState = selectedRoomState,
                 onBackToHome = {
-                    navController.navigate(AppDestination.Home.route) {
-                        popUpTo(navController.graph.startDestinationId)
+                    shellViewModel.startOver()
+                    navController.navigate(AppDestination.Rooms.route) {
+                        popUpTo(AppDestination.Rooms.route) { inclusive = false }
                     }
                 },
-                onTryAnotherStyle = { navController.navigate(AppDestination.StyleSelection.route) },
+                onTryAnotherStyle = {
+                    shellViewModel.beginNewRedesign()
+                    navController.navigate(AppDestination.RoomDetail.route) {
+                        popUpTo(AppDestination.Rooms.route)
+                    }
+                    navController.navigate(AppDestination.StyleSelection.route)
+                },
             )
         }
     }
@@ -203,7 +206,8 @@ fun AtelierShell(
 
 @Composable
 private fun SplashScreen() {
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        CircularProgressIndicator()
+    Box(modifier = Modifier.fillMaxSize()) {
+        AppBackground()
+        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
     }
 }

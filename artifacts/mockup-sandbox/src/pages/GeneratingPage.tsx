@@ -5,6 +5,7 @@ import { Redirect, useRoute } from "wouter";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAppFlow } from "@/context/AppFlowContext";
 import { createRedesign, redesignToDataUrl } from "@/lib/api";
+import { bundleProducts, toRedesignProducts } from "@/lib/product-catalog";
 
 const statusMessages = [
   "Analyzing your room...",
@@ -35,7 +36,10 @@ export function GeneratingPage() {
 
     void (async () => {
       try {
-        const result = await createRedesign(room.id, selectedStyle.id);
+        const products = toRedesignProducts(
+          bundleProducts(room.name, selectedStyle.id),
+        );
+        const result = await createRedesign(room.id, selectedStyle.id, products);
         if (cancelled) return;
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: ["rooms"] }),

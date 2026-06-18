@@ -10,10 +10,11 @@ data class GeneratingUiState(
 ) {
     companion object {
         val STATUS_MESSAGES = listOf(
-            "Analyzing your room...",
-            "Applying your style...",
-            "Refining materials and lighting...",
-            "Almost there...",
+            "Analyzing your room…",
+            "Matching shoppable products…",
+            "Staging only inventory items…",
+            "Checking product accuracy…",
+            "Almost there…",
         )
     }
 }

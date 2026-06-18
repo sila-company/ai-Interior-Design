@@ -38,6 +38,13 @@ struct RoomResponse: Decodable {
     let originalImageUrl: String
     let createdAt: String
     let redesignCount: Int
+    let description: String?
+    let length: Double?
+    let width: Double?
+    let height: Double?
+    let dimensionUnit: String?
+    let budgetAmount: Int?
+    let budgetCurrency: String?
 }
 
 struct RedesignResponse: Decodable {
@@ -48,14 +55,46 @@ struct RedesignResponse: Decodable {
     let resultImageUrl: String
     let originalImageUrl: String?
     let imageBase64: String?
+    let products: [ProductResponse]?
     let createdAt: String
+}
+
+struct ProductResponse: Decodable {
+    let id: String
+    let roomType: String
+    let category: String
+    let title: String
+    let price: String?
+    let currency: String
+    let retailer: String
+    let affiliateUrl: String
+    let productUrl: String
+    let imageUrl: String?
+    let width: Double?
+    let depth: Double?
+    let height: Double?
+    let dimensionUnit: String
+    let color: String?
+    let material: String?
+    let styleTags: [String]
+    let visualDescription: String?
+}
+
+struct GeneratedRedesignResult {
+    let image: UIImage
+    let products: [ShoppableProduct]
 }
 
 struct AtelierAPIService {
     private let session: URLSession
+    private let redesignSession: URLSession
 
-    init(session: URLSession = .shared) {
+    init(
+        session: URLSession = APIConfiguration.standardSession,
+        redesignSession: URLSession = APIConfiguration.redesignSession
+    ) {
         self.session = session
+        self.redesignSession = redesignSession
     }
 
     func register(name: String, email: String, password: String) async throws -> AuthResponse {
@@ -154,7 +193,7 @@ struct AtelierAPIService {
         return (try mapRoom(response.room), try response.redesigns.map(mapRedesign))
     }
 
-    func createRoom(name: String, image: UIImage) async throws -> SavedRoom {
+    func createRoom(name: String, image: UIImage, input: CreateRoomInput) async throws -> SavedRoom {
         guard let baseURL = APIConfiguration.apiBaseURL else {
             throw AtelierAPIServiceError.missingBaseURL
         }
@@ -168,9 +207,33 @@ struct AtelierAPIService {
 
         var body = Data()
         let lineBreak = "\r\n"
-        body.append("--\(boundary)\(lineBreak)")
-        body.append("Content-Disposition: form-data; name=\"name\"\(lineBreak)\(lineBreak)")
-        body.append("\(name)\(lineBreak)")
+        func appendField(_ name: String, _ value: String) {
+            body.append("--\(boundary)\(lineBreak)")
+            body.append("Content-Disposition: form-data; name=\"\(name)\"\(lineBreak)\(lineBreak)")
+            body.append("\(value)\(lineBreak)")
+        }
+
+        appendField("name", name)
+        appendField("description", input.description.trimmingCharacters(in: .whitespacesAndNewlines))
+
+        if input.includesDimensions {
+            appendField("dimensionUnit", input.dimensionUnit.rawValue)
+            if let length = parseDimension(input.length) {
+                appendField("length", String(length))
+            }
+            if let width = parseDimension(input.width) {
+                appendField("width", String(width))
+            }
+            if let height = parseDimension(input.height) {
+                appendField("height", String(height))
+            }
+        }
+
+        if input.includesBudget, let budget = parseBudget(input.budget) {
+            appendField("budgetAmount", String(budget))
+            appendField("budgetCurrency", "USD")
+        }
+
         body.append("--\(boundary)\(lineBreak)")
         body.append("Content-Disposition: form-data; name=\"image\"; filename=\"room.jpg\"\(lineBreak)")
         body.append("Content-Type: image/jpeg\(lineBreak)\(lineBreak)")
@@ -183,42 +246,134 @@ struct AtelierAPIService {
         return try mapRoom(response)
     }
 
+    private func parseDimension(_ value: String) -> Double? {
+        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty, let number = Double(trimmed), number > 0 else { return nil }
+        return number
+    }
+
+    private func parseBudget(_ value: String) -> Int? {
+        let digits = value.filter(\.isNumber)
+        guard let number = Int(digits), number > 0 else { return nil }
+        return number
+    }
+
     func generateRedesign(
         roomId: String,
-        style: DesignStyle,
-        products: [ShoppableProduct]
-    ) async throws -> UIImage {
-        let body = try JSONSerialization.data(withJSONObject: [
+        style: DesignStyle? = nil,
+        customStyleDescription: String? = nil,
+        revisionInstruction: String? = nil
+    ) async throws -> GeneratedRedesignResult {
+        var payload: [String: Any] = [
             "roomId": roomId,
-            "styleId": style.id,
-            "products": ProductCatalog.promptBrief(for: products),
-        ])
+        ]
+
+        if let style {
+            payload["styleId"] = style.id
+        }
+
+        if let customStyleDescription {
+            let trimmed = customStyleDescription.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                payload["customStyleDescription"] = trimmed
+            }
+        }
+
+        if style == nil && payload["customStyleDescription"] == nil {
+            throw AtelierAPIServiceError.invalidResponse
+        }
+
+        if let revisionInstruction,
+           !revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            payload["revisionInstruction"] = revisionInstruction
+        }
+
+        let body = try JSONSerialization.data(withJSONObject: payload)
 
         let response: RedesignResponse = try await sendJSON(
             path: "api/redesigns",
             method: "POST",
             body: body,
             authorized: true,
-            decoder: RedesignResponse.self
+            decoder: RedesignResponse.self,
+            timeout: APIConfiguration.redesignTimeout,
+            session: redesignSession
         )
+
+        if let url = absoluteURL(from: response.resultImageUrl) {
+            let request = authorizedRequest(
+                url: url,
+                method: "GET",
+                timeout: APIConfiguration.redesignTimeout
+            )
+            let (data, httpResponse) = try await redesignSession.data(for: request)
+            if let http = httpResponse as? HTTPURLResponse, http.statusCode == 200,
+               let image = UIImage(data: data) {
+                return GeneratedRedesignResult(
+                    image: image,
+                    products: response.products?.compactMap(mapProduct) ?? []
+                )
+            }
+        }
 
         if let imageBase64 = response.imageBase64,
            let imageData = Data(base64Encoded: imageBase64),
            let image = UIImage(data: imageData) {
-            return image
+            return GeneratedRedesignResult(
+                image: image,
+                products: response.products?.compactMap(mapProduct) ?? []
+            )
         }
 
         guard let url = absoluteURL(from: response.resultImageUrl) else {
             throw AtelierAPIServiceError.invalidResponse
         }
 
-        let request = authorizedRequest(url: url, method: "GET")
-        let (data, httpResponse) = try await session.data(for: request)
+        let request = authorizedRequest(
+            url: url,
+            method: "GET",
+            timeout: APIConfiguration.redesignTimeout
+        )
+        let (data, httpResponse) = try await redesignSession.data(for: request)
         guard let http = httpResponse as? HTTPURLResponse, http.statusCode == 200,
               let image = UIImage(data: data) else {
             throw AtelierAPIServiceError.invalidResponse
         }
-        return image
+        return GeneratedRedesignResult(
+            image: image,
+            products: response.products?.compactMap(mapProduct) ?? []
+        )
+    }
+
+    private func mapProduct(_ product: ProductResponse) -> ShoppableProduct? {
+        guard let affiliateURL = URL(string: product.affiliateUrl),
+              let productURL = URL(string: product.productUrl),
+              let imageURLString = product.imageUrl,
+              let imageURL = URL(string: imageURLString) else {
+            return nil
+        }
+
+        return ShoppableProduct(
+            id: product.id,
+            roomType: product.roomType == "bedroom" ? .bedroom : .livingRoom,
+            category: product.category,
+            title: product.title,
+            price: product.price.flatMap { Decimal(string: $0) },
+            currency: product.currency,
+            retailer: product.retailer,
+            affiliateURL: affiliateURL,
+            productURL: productURL,
+            imageURL: imageURL,
+            width: product.width,
+            depth: product.depth,
+            height: product.height,
+            dimensionUnit: product.dimensionUnit,
+            color: product.color ?? "",
+            material: product.material ?? "",
+            styleTags: product.styleTags,
+            visualDescription: product.visualDescription ?? "",
+            notes: "Selected from live inventory."
+        )
     }
 
     private func mapRedesign(_ redesign: RedesignResponse) throws -> SavedRedesign {
@@ -240,7 +395,8 @@ struct AtelierAPIService {
             styleId: redesign.styleId,
             mimeType: redesign.mimeType,
             resultImageURL: resultURL,
-            originalImageURL: originalURL
+            originalImageURL: originalURL,
+            products: redesign.products?.compactMap(mapProduct) ?? []
         )
     }
 
@@ -252,7 +408,20 @@ struct AtelierAPIService {
             id: room.id,
             name: room.name,
             originalImageURL: url,
-            redesignCount: room.redesignCount
+            redesignCount: room.redesignCount,
+            preferences: mapPreferences(room)
+        )
+    }
+
+    private func mapPreferences(_ room: RoomResponse) -> RoomPreferences {
+        RoomPreferences(
+            description: room.description,
+            length: room.length,
+            width: room.width,
+            height: room.height,
+            dimensionUnit: room.dimensionUnit.flatMap(DimensionUnit.init(rawValue:)),
+            budgetAmount: room.budgetAmount,
+            budgetCurrency: room.budgetCurrency ?? "USD"
         )
     }
 
@@ -266,10 +435,14 @@ struct AtelierAPIService {
         return URL(string: path, relativeTo: baseURL)?.absoluteURL
     }
 
-    private func authorizedRequest(url: URL, method: String) -> URLRequest {
+    private func authorizedRequest(
+        url: URL,
+        method: String,
+        timeout: TimeInterval = APIConfiguration.standardTimeout
+    ) -> URLRequest {
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.timeoutInterval = 180
+        request.timeoutInterval = timeout
         if let token = KeychainStore.loadToken() {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
@@ -281,7 +454,9 @@ struct AtelierAPIService {
         method: String,
         body: Data?,
         authorized: Bool,
-        decoder: T.Type
+        decoder: T.Type,
+        timeout: TimeInterval = APIConfiguration.standardTimeout,
+        session: URLSession? = nil
     ) async throws -> T {
         guard let baseURL = APIConfiguration.apiBaseURL else {
             throw AtelierAPIServiceError.missingBaseURL
@@ -289,7 +464,7 @@ struct AtelierAPIService {
 
         var request = URLRequest(url: baseURL.appending(path: path))
         request.httpMethod = method
-        request.timeoutInterval = 180
+        request.timeoutInterval = timeout
         if let body {
             request.httpBody = body
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -298,11 +473,27 @@ struct AtelierAPIService {
             request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
         }
 
-        return try await perform(request, decoder: decoder)
+        return try await perform(request, decoder: decoder, session: session ?? self.session)
     }
 
-    private func perform<T: Decodable>(_ request: URLRequest, decoder: T.Type) async throws -> T {
-        let (data, response) = try await session.data(for: request)
+    private func perform<T: Decodable>(
+        _ request: URLRequest,
+        decoder: T.Type,
+        session: URLSession? = nil
+    ) async throws -> T {
+        let activeSession = session ?? self.session
+
+        let data: Data
+        let response: URLResponse
+        do {
+            (data, response) = try await activeSession.data(for: request)
+        } catch let error as URLError where error.code == .timedOut {
+            throw AtelierAPIServiceError.apiError(
+                "The redesign took too long to finish. Keep the app open and try again — complex rooms can take up to 10 minutes."
+            )
+        } catch {
+            throw error
+        }
 
         guard let httpResponse = response as? HTTPURLResponse else {
             throw AtelierAPIServiceError.invalidResponse

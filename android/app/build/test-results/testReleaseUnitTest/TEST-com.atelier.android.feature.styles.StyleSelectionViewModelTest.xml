@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.atelier.android.feature.styles.StyleSelectionViewModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:52.193Z" hostname="DESKTOP-3MLASM6" time="0.009">
+  <properties/>
+  <testcase name="selectingStyleEnablesContinue" classname="com.atelier.android.feature.styles.StyleSelectionViewModelTest" time="0.004"/>
+  <testcase name="retryReloadsStyles" classname="com.atelier.android.feature.styles.StyleSelectionViewModelTest" time="0.002"/>
+  <testcase name="loadsStylesSuccessfully" classname="com.atelier.android.feature.styles.StyleSelectionViewModelTest" time="0.001"/>
+  <testcase name="handlesLoadFailure" classname="com.atelier.android.feature.styles.StyleSelectionViewModelTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

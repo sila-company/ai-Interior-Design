@@ -1,4 +1,5 @@
 import { clearAuthToken, getAuthToken } from "./auth-storage";
+import type { RedesignProductInput } from "./product-catalog";
 import { enrichStyle, type DesignStyle } from "./styles";
 
 export interface User {
@@ -50,6 +51,8 @@ async function parseError(response: Response): Promise<string> {
   return `Request failed (${response.status})`;
 }
 
+const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
+
 async function apiFetch<T>(
   path: string,
   init: RequestInit = {},
@@ -64,7 +67,7 @@ async function apiFetch<T>(
     headers.set("Content-Type", "application/json");
   }
 
-  const response = await fetch(path, {
+  const response = await fetch(`${API_BASE}${path}`, {
     ...init,
     headers,
     credentials: "include",
@@ -192,10 +195,11 @@ export async function getRoom(roomId: string): Promise<{
 export async function createRedesign(
   roomId: string,
   styleId: string,
+  products?: RedesignProductInput[],
 ): Promise<Redesign> {
   return apiFetch("/api/redesigns", {
     method: "POST",
-    body: JSON.stringify({ roomId, styleId }),
+    body: JSON.stringify({ roomId, styleId, products }),
   });
 }
 
@@ -204,4 +208,12 @@ export function redesignToDataUrl(redesign: Redesign): string {
     return `data:${redesign.mimeType};base64,${redesign.imageBase64}`;
   }
   return redesign.resultImageUrl;
+}
+
+export async function deleteRoom(roomId: string): Promise<void> {
+  await apiFetch(`/api/rooms/${roomId}`, { method: "DELETE" });
+}
+
+export async function deleteRedesign(redesignId: string): Promise<void> {
+  await apiFetch(`/api/redesigns/${redesignId}`, { method: "DELETE" });
 }

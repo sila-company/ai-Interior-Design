@@ -1,16 +1,27 @@
 package com.atelier.android.feature.rooms
 
 import android.net.Uri
+import com.atelier.android.core.model.RedesignDto
 import com.atelier.android.core.model.RoomDto
 
 data class RoomsUiState(
     val isLoading: Boolean = true,
     val rooms: List<RoomDto> = emptyList(),
+    val redesigns: List<RedesignDto> = emptyList(),
     val errorMessage: String? = null,
 ) {
     val isEmpty: Boolean
         get() = !isLoading && errorMessage == null && rooms.isEmpty()
+
+    val recentRedesigns: List<RedesignDto>
+        get() = redesigns.take(6)
 }
+
+data class RoomDetailUiState(
+    val isLoading: Boolean = true,
+    val redesigns: List<RedesignDto> = emptyList(),
+    val errorMessage: String? = null,
+)
 
 data class AddRoomUiState(
     val name: String = "",

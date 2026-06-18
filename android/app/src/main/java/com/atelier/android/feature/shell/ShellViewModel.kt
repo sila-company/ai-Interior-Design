@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atelier.android.core.auth.AuthRepository
-import com.atelier.android.core.model.RoomDto
+import com.atelier.android.core.catalog.ProductCatalog
+import com.atelier.android.core.design.StyleCatalog
 import com.atelier.android.core.model.RedesignDto
+import com.atelier.android.core.model.RoomDto
 import com.atelier.android.core.model.StyleDto
 import com.atelier.android.core.model.UserDto
 import com.atelier.android.core.session.SelectedRoomState
@@ -63,16 +65,55 @@ class ShellViewModel(
         }
     }
 
-    fun selectRoom(room: RoomDto, localImageUri: String? = null) {
-        _selectedRoomState.value = SelectedRoomState(room = room, localImageUri = localImageUri)
+    fun openRoom(room: RoomDto, localImageUri: String? = null) {
+        _selectedRoomState.value = SelectedRoomState(
+            room = room,
+            localImageUri = localImageUri,
+        )
+    }
+
+    fun beginWithRoom(room: RoomDto, localImageUri: String? = null) {
+        _selectedRoomState.value = SelectedRoomState(
+            room = room,
+            localImageUri = localImageUri,
+        )
+    }
+
+    fun beginNewRedesign() {
+        val current = _selectedRoomState.value
+        _selectedRoomState.value = current.copy(
+            selectedStyle = null,
+            selectedProducts = emptyList(),
+            redesign = null,
+        )
     }
 
     fun selectStyle(style: StyleDto) {
-        _selectedRoomState.value = _selectedRoomState.value.copy(selectedStyle = style, redesign = null)
+        val roomName = _selectedRoomState.value.room?.name
+        _selectedRoomState.value = _selectedRoomState.value.copy(
+            selectedStyle = style,
+            selectedProducts = ProductCatalog.bundle(roomName, style.id),
+            redesign = null,
+        )
     }
 
     fun completeGeneration(redesign: RedesignDto) {
         _selectedRoomState.value = _selectedRoomState.value.copy(redesign = redesign)
+    }
+
+    fun viewSavedRedesign(redesign: RedesignDto, styleId: String) {
+        val style = StyleCatalog.styleFor(styleId)
+            ?: StyleDto(styleId, styleId.replaceFirstChar { it.uppercase() }, "", "")
+        val roomName = _selectedRoomState.value.room?.name
+        _selectedRoomState.value = _selectedRoomState.value.copy(
+            selectedStyle = style,
+            selectedProducts = ProductCatalog.bundle(roomName, style.id),
+            redesign = redesign,
+        )
+    }
+
+    fun startOver() {
+        _selectedRoomState.value = SelectedRoomState()
     }
 
     class Factory(

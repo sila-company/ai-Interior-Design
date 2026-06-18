@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.atelier.android.core.session.InMemorySessionStoreTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-06-16T06:11:19.289Z" hostname="DESKTOP-3MLASM6" time="0.003">
+<testsuite name="com.atelier.android.core.session.InMemorySessionStoreTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:50.412Z" hostname="DESKTOP-3MLASM6" time="0.002">
   <properties/>
-  <testcase name="saveLoadAndClearToken" classname="com.atelier.android.core.session.InMemorySessionStoreTest" time="0.003"/>
+  <testcase name="saveLoadAndClearToken" classname="com.atelier.android.core.session.InMemorySessionStoreTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

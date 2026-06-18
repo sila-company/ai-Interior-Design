@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.atelier.android.feature.shell.ShellViewModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-16T06:11:19.374Z" hostname="DESKTOP-3MLASM6" time="0.014">
+<testsuite name="com.atelier.android.feature.shell.ShellViewModelTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:50.482Z" hostname="DESKTOP-3MLASM6" time="0.011">
   <properties/>
-  <testcase name="restoreSessionAuthenticatesWhenCurrentUserExists" classname="com.atelier.android.feature.shell.ShellViewModelTest" time="0.008"/>
+  <testcase name="restoreSessionAuthenticatesWhenCurrentUserExists" classname="com.atelier.android.feature.shell.ShellViewModelTest" time="0.005"/>
   <testcase name="selectedStyleIsStoredAgainstCurrentRoom" classname="com.atelier.android.feature.shell.ShellViewModelTest" time="0.002"/>
   <testcase name="sessionInvalidationRoutesBackToAuthAndClearsSelectedRoom" classname="com.atelier.android.feature.shell.ShellViewModelTest" time="0.002"/>
-  <testcase name="generatedRedesignIsStoredForResultsHandoff" classname="com.atelier.android.feature.shell.ShellViewModelTest" time="0.002"/>
+  <testcase name="generatedRedesignIsStoredForResultsHandoff" classname="com.atelier.android.feature.shell.ShellViewModelTest" time="0.001"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

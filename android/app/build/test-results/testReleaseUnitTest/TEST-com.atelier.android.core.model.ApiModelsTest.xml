@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.atelier.android.core.model.ApiModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:51.717Z" hostname="DESKTOP-3MLASM6" time="0.08">
+  <properties/>
+  <testcase name="parsesAuthUserRoomsStylesRoomDetailAndRedesignDtos" classname="com.atelier.android.core.model.ApiModelsTest" time="0.05"/>
+  <testcase name="absoluteUrlKeepsRemoteUrlsAndResolvesProtectedUploadPaths" classname="com.atelier.android.core.model.ApiModelsTest" time="0.02"/>
+  <testcase name="redesignImageSelectionUsesBase64BeforeUrlThenMissing" classname="com.atelier.android.core.model.ApiModelsTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

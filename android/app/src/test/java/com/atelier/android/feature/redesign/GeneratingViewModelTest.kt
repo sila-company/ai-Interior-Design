@@ -22,9 +22,11 @@ class GeneratingViewModelTest {
         val repository = FakeRedesignRepository(Result.success(redesign))
         val viewModel = GeneratingViewModel(repository)
 
-        viewModel.generate("room-1", "modern")
+        viewModel.generate("room-1", "modern", "Living room")
 
-        assertEquals(CreateRedesignRequestDto("room-1", "modern"), repository.lastBody)
+        assertEquals("room-1", repository.lastBody?.roomId)
+        assertEquals("modern", repository.lastBody?.styleId)
+        assertTrue(repository.lastBody?.products?.isNotEmpty() == true)
         assertFalse(viewModel.uiState.value.isGenerating)
         assertEquals(redesign, viewModel.uiState.value.redesign)
         assertEquals(null, viewModel.uiState.value.errorMessage)
@@ -36,7 +38,7 @@ class GeneratingViewModelTest {
             FakeRedesignRepository(Result.failure(IllegalStateException("Generation failed"))),
         )
 
-        viewModel.generate("room-1", "modern")
+        viewModel.generate("room-1", "modern", "Living room")
 
         assertFalse(viewModel.uiState.value.isGenerating)
         assertEquals("Generation failed", viewModel.uiState.value.errorMessage)
@@ -46,7 +48,7 @@ class GeneratingViewModelTest {
     fun clearCompletedRedesignRemovesCompletionPayload() = runTest {
         val viewModel = GeneratingViewModel(FakeRedesignRepository(Result.success(redesign())))
 
-        viewModel.generate("room-1", "modern")
+        viewModel.generate("room-1", "modern", "Living room")
         assertNotNull(viewModel.uiState.value.redesign)
 
         viewModel.clearCompletedRedesign()

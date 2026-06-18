@@ -7,10 +7,13 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atelier.android.core.auth.AuthRepository
 import com.atelier.android.core.model.RoomDto
+import com.atelier.android.core.network.RedesignRepository
 import com.atelier.android.core.network.RoomsRepository
 import com.atelier.android.core.network.userMessage
 import com.atelier.android.core.upload.ImageCompressor
 import com.atelier.android.core.upload.RoomUploadPreparer
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -19,6 +22,7 @@ import kotlinx.coroutines.launch
 
 class RoomsViewModel(
     private val roomsRepository: RoomsRepository,
+    private val redesignRepository: RedesignRepository,
     private val authRepository: AuthRepository,
     private val onLoggedOut: () -> Unit,
 ) : ViewModel() {
@@ -32,8 +36,20 @@ class RoomsViewModel(
     fun refresh() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            runCatching { roomsRepository.listRooms() }
-                .onSuccess { rooms -> _uiState.value = RoomsUiState(isLoading = false, rooms = rooms) }
+            runCatching {
+                coroutineScope {
+                    val roomsDeferred = async { roomsRepository.listRooms() }
+                    val redesignsDeferred = async { redesignRepository.redesigns() }
+                    roomsDeferred.await() to redesignsDeferred.await()
+                }
+            }
+                .onSuccess { (rooms, redesigns) ->
+                    _uiState.value = RoomsUiState(
+                        isLoading = false,
+                        rooms = rooms,
+                        redesigns = redesigns,
+                    )
+                }
                 .onFailure { error ->
                     _uiState.update { it.copy(isLoading = false, errorMessage = error.userMessage()) }
                 }
@@ -49,12 +65,50 @@ class RoomsViewModel(
 
     class Factory(
         private val roomsRepository: RoomsRepository,
+        private val redesignRepository: RedesignRepository,
         private val authRepository: AuthRepository,
         private val onLoggedOut: () -> Unit,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T =
-            RoomsViewModel(roomsRepository, authRepository, onLoggedOut) as T
+            RoomsViewModel(roomsRepository, redesignRepository, authRepository, onLoggedOut) as T
+    }
+}
+
+class RoomDetailViewModel(
+    private val roomsRepository: RoomsRepository,
+    private val roomId: String,
+) : ViewModel() {
+    private val _uiState = MutableStateFlow(RoomDetailUiState())
+    val uiState: StateFlow<RoomDetailUiState> = _uiState.asStateFlow()
+
+    init {
+        refresh()
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            runCatching { roomsRepository.roomDetail(roomId) }
+                .onSuccess { detail ->
+                    _uiState.value = RoomDetailUiState(
+                        isLoading = false,
+                        redesigns = detail.redesigns,
+                    )
+                }
+                .onFailure { error ->
+                    _uiState.update { it.copy(isLoading = false, errorMessage = error.userMessage()) }
+                }
+        }
+    }
+
+    class Factory(
+        private val roomsRepository: RoomsRepository,
+        private val roomId: String,
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T =
+            RoomDetailViewModel(roomsRepository, roomId) as T
     }
 }
 

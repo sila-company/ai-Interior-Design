@@ -15,8 +15,12 @@ router.get("/healthz/deep", async (_req, res) => {
     databaseUrl: Boolean(process.env.DATABASE_URL),
     jwtSecret: Boolean(process.env.JWT_SECRET),
     openAIAPIKey: Boolean(process.env.OPENAI_API_KEY),
+    fileStorage: false,
     database: false,
   };
+
+  const { hasPersistentStorageConfig } = await import("../services/storage");
+  checks.fileStorage = hasPersistentStorageConfig();
 
   try {
     const { getDb, users } = await import("@workspace/db");

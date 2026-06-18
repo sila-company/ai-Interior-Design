@@ -1,4 +1,4 @@
-import { Link, useLocation } from "wouter";
+import { Link, Redirect, useLocation } from "wouter";
 
 import { AuthForm } from "@/components/AuthForm";
 import { MobileNavBar } from "@/components/MobileNavBar";
@@ -6,8 +6,12 @@ import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAuth } from "@/context/AuthContext";
 
 export function LoginPage() {
-  const { login } = useAuth();
+  const { login, user, isLoading } = useAuth();
   const [, setLocation] = useLocation();
+
+  if (!isLoading && user) {
+    return <Redirect to="/rooms" />;
+  }
 
   return (
     <div className="flex min-h-dvh flex-col">

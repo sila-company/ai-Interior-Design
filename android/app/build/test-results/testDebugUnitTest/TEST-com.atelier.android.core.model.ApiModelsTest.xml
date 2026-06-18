@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.atelier.android.core.model.ApiModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-16T06:11:18.545Z" hostname="DESKTOP-3MLASM6" time="0.087">
+<testsuite name="com.atelier.android.core.model.ApiModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-18T04:51:50.016Z" hostname="DESKTOP-3MLASM6" time="0.077">
   <properties/>
-  <testcase name="parsesAuthUserRoomsStylesRoomDetailAndRedesignDtos" classname="com.atelier.android.core.model.ApiModelsTest" time="0.056"/>
-  <testcase name="absoluteUrlKeepsRemoteUrlsAndResolvesProtectedUploadPaths" classname="com.atelier.android.core.model.ApiModelsTest" time="0.021"/>
-  <testcase name="redesignImageSelectionUsesBase64BeforeUrlThenMissing" classname="com.atelier.android.core.model.ApiModelsTest" time="0.003"/>
+  <testcase name="parsesAuthUserRoomsStylesRoomDetailAndRedesignDtos" classname="com.atelier.android.core.model.ApiModelsTest" time="0.05"/>
+  <testcase name="absoluteUrlKeepsRemoteUrlsAndResolvesProtectedUploadPaths" classname="com.atelier.android.core.model.ApiModelsTest" time="0.019"/>
+  <testcase name="redesignImageSelectionUsesBase64BeforeUrlThenMissing" classname="com.atelier.android.core.model.ApiModelsTest" time="0.002"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

@@ -52,12 +52,31 @@ export function getStyleById(id: string): StyleDefinition | undefined {
   return STYLE_CATALOG.find((style) => style.id === id);
 }
 
-export function buildRedesignPrompt(style: StyleDefinition): string {
-  return [
-    `Transform this interior room into a ${style.name.toLowerCase()} design.`,
-    style.description,
+export function buildRedesignPrompt(
+  style: StyleDefinition,
+  roomContextLines: string[] = [],
+): string {
+  const styleDirection =
+    style.id === "custom"
+      ? `Style direction from the homeowner: ${style.description}`
+      : `Transform this interior room into a ${style.name.toLowerCase()} design. ${style.description}`;
+
+  const lines = [
+    styleDirection,
+    ...roomContextLines,
     "Preserve the room layout, walls, windows, doors, ceiling, floor plan, and camera perspective.",
     "Update furniture, materials, colors, lighting, textiles, and decor to match the style.",
     "Photorealistic interior design photograph with natural lighting.",
-  ].join(" ");
+  ];
+
+  return lines.join(" ");
+}
+
+export function customStyleDefinition(description: string): StyleDefinition {
+  return {
+    id: "custom",
+    name: "Custom",
+    description,
+    icon: "text.quote",
+  };
 }

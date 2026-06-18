@@ -6,11 +6,16 @@ import { z } from "zod/v4";
 import { getDb, redesigns, rooms } from "@workspace/db";
 import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
+import { ensureInventoryDatabase } from "../services/inventory";
 import {
   readStoredImage,
   saveUserImage,
   toPublicUploadUrl,
 } from "../services/storage";
+import {
+  parseRoomPreferences,
+  roomPreferencesFromRecord,
+} from "../lib/room-context";
 
 const router: IRouter = Router();
 const upload = multer({
@@ -24,7 +29,41 @@ const roomSchema = z.object({
   originalImageUrl: z.string(),
   createdAt: z.string(),
   redesignCount: z.number(),
+  description: z.string().nullable(),
+  length: z.number().nullable(),
+  width: z.number().nullable(),
+  height: z.number().nullable(),
+  dimensionUnit: z.enum(["meters", "feet"]).nullable(),
+  budgetAmount: z.number().int().nullable(),
+  budgetCurrency: z.string(),
 });
+
+function serializeRoom(
+  room: {
+    id: string;
+    name: string;
+    originalImagePath: string;
+    createdAt: Date;
+    description: string | null;
+    length: number | null;
+    width: number | null;
+    height: number | null;
+    dimensionUnit: string | null;
+    budgetAmount: number | null;
+    budgetCurrency: string | null;
+  },
+  redesignCount: number,
+) {
+  const preferences = roomPreferencesFromRecord(room as never);
+  return roomSchema.parse({
+    id: room.id,
+    name: room.name,
+    originalImageUrl: toPublicUploadUrl(room.originalImagePath),
+    createdAt: room.createdAt.toISOString(),
+    redesignCount,
+    ...preferences,
+  });
+}
 
 const redesignSchema = z.object({
   id: z.string(),
@@ -32,6 +71,7 @@ const redesignSchema = z.object({
   styleId: z.string(),
   mimeType: z.string(),
   resultImageUrl: z.string(),
+  products: z.array(z.unknown()).optional(),
   createdAt: z.string(),
 });
 
@@ -56,15 +96,7 @@ router.get("/", async (req: AuthenticatedRequest, res) => {
   );
 
   res.json(
-    userRooms.map((room, index) =>
-      roomSchema.parse({
-        id: room.id,
-        name: room.name,
-        originalImageUrl: toPublicUploadUrl(room.originalImagePath),
-        createdAt: room.createdAt.toISOString(),
-        redesignCount: counts[index] ?? 0,
-      }),
-    ),
+    userRooms.map((room, index) => serializeRoom(room, counts[index] ?? 0)),
   );
 });
 
@@ -87,6 +119,8 @@ router.post("/", upload.single("image"), async (req: AuthenticatedRequest, res) 
     "jpg",
   );
 
+  const preferences = parseRoomPreferences(req.body as Record<string, unknown>);
+
   const db = getDb();
   const [created] = await db
     .insert(rooms)
@@ -94,6 +128,13 @@ router.post("/", upload.single("image"), async (req: AuthenticatedRequest, res) 
       userId: req.user!.id,
       name,
       originalImagePath,
+      description: preferences.description,
+      length: preferences.length,
+      width: preferences.width,
+      height: preferences.height,
+      dimensionUnit: preferences.dimensionUnit,
+      budgetAmount: preferences.budgetAmount,
+      budgetCurrency: preferences.budgetCurrency,
     })
     .returning();
 
@@ -102,18 +143,12 @@ router.post("/", upload.single("image"), async (req: AuthenticatedRequest, res) 
     return;
   }
 
-  res.status(201).json(
-    roomSchema.parse({
-      id: created.id,
-      name: created.name,
-      originalImageUrl: toPublicUploadUrl(created.originalImagePath),
-      createdAt: created.createdAt.toISOString(),
-      redesignCount: 0,
-    }),
-  );
+  res.status(201).json(serializeRoom(created, 0));
 });
 
 router.get("/:roomId", async (req: AuthenticatedRequest, res) => {
+  await ensureInventoryDatabase();
+
   const roomId = String(req.params.roomId);
   const db = getDb();
   const [room] = await db
@@ -134,13 +169,7 @@ router.get("/:roomId", async (req: AuthenticatedRequest, res) => {
     .orderBy(desc(redesigns.createdAt));
 
   res.json({
-    room: roomSchema.parse({
-      id: room.id,
-      name: room.name,
-      originalImageUrl: toPublicUploadUrl(room.originalImagePath),
-      createdAt: room.createdAt.toISOString(),
-      redesignCount: roomRedesigns.length,
-    }),
+    room: serializeRoom(room, roomRedesigns.length),
     redesigns: roomRedesigns.map((item) =>
       redesignSchema.parse({
         id: item.id,
@@ -148,6 +177,9 @@ router.get("/:roomId", async (req: AuthenticatedRequest, res) => {
         styleId: item.styleId,
         mimeType: item.mimeType,
         resultImageUrl: toPublicUploadUrl(item.resultImagePath),
+        products: Array.isArray(item.inventoryProducts)
+          ? item.inventoryProducts
+          : undefined,
         createdAt: item.createdAt.toISOString(),
       }),
     ),
@@ -162,10 +194,22 @@ router.patch("/:roomId", async (req: AuthenticatedRequest, res) => {
     return;
   }
 
+  const preferences = parseRoomPreferences(req.body as Record<string, unknown>);
+
   const db = getDb();
   const [updated] = await db
     .update(rooms)
-    .set({ name, updatedAt: new Date() })
+    .set({
+      name,
+      description: preferences.description,
+      length: preferences.length,
+      width: preferences.width,
+      height: preferences.height,
+      dimensionUnit: preferences.dimensionUnit,
+      budgetAmount: preferences.budgetAmount,
+      budgetCurrency: preferences.budgetCurrency,
+      updatedAt: new Date(),
+    })
     .where(eq(rooms.id, roomId))
     .returning();
 
@@ -174,15 +218,7 @@ router.patch("/:roomId", async (req: AuthenticatedRequest, res) => {
     return;
   }
 
-  res.json(
-    roomSchema.parse({
-      id: updated.id,
-      name: updated.name,
-      originalImageUrl: toPublicUploadUrl(updated.originalImagePath),
-      createdAt: updated.createdAt.toISOString(),
-      redesignCount: 0,
-    }),
-  );
+  res.json(serializeRoom(updated, 0));
 });
 
 router.delete("/:roomId", async (req: AuthenticatedRequest, res) => {
