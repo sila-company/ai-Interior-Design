@@ -3,6 +3,7 @@ package com.atelier.android.feature.shell
 import com.atelier.android.MainDispatcherRule
 import com.atelier.android.core.auth.AuthRepository
 import com.atelier.android.core.model.RoomDto
+import com.atelier.android.core.model.RedesignDto
 import com.atelier.android.core.model.StyleDto
 import com.atelier.android.core.model.UserDto
 import com.atelier.android.core.session.SessionState
@@ -47,6 +48,23 @@ class ShellViewModelTest {
 
         assertEquals(room, viewModel.selectedRoomState.value.room)
         assertEquals(style, viewModel.selectedRoomState.value.selectedStyle)
+    }
+
+    @Test
+    fun generatedRedesignIsStoredForResultsHandoff() = runTest {
+        val viewModel = ShellViewModel(FakeAuthRepository(UserDto("u1", "a@example.com", "Ada")), MutableSharedFlow())
+        val redesign = RedesignDto(
+            id = "d1",
+            roomId = "r1",
+            styleId = "modern",
+            mimeType = "image/jpeg",
+            resultImageUrl = "/api/uploads/result.jpg",
+            createdAt = "2026-06-16T00:00:00Z",
+        )
+
+        viewModel.completeGeneration(redesign)
+
+        assertEquals(redesign, viewModel.selectedRoomState.value.redesign)
     }
 }
 

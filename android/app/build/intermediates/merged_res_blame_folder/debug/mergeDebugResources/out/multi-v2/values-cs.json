@@ -1,7 +1,7 @@
 {
     "logs": [
         {
-            "outputFile": "com.atelier.android.app-mergeDebugResources-52:/values-cs/values-cs.xml",
+            "outputFile": "com.atelier.android.app-mergeDebugResources-53:/values-cs/values-cs.xml",
             "map": [
                 {
                     "source": "C:\\Users\\qais4\\.gradle\\caches\\9.3.0\\transforms\\9af9a0195043e4f02aeed5bd6ade128d\\workspace\\transformed\\ui-release\\res\\values-cs\\values-cs.xml",

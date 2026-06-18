@@ -22,13 +22,18 @@ import com.atelier.android.feature.auth.LoginScreen
 import com.atelier.android.feature.auth.LoginViewModel
 import com.atelier.android.feature.auth.RegisterScreen
 import com.atelier.android.feature.auth.RegisterViewModel
+import com.atelier.android.feature.rooms.AccountScreen
 import com.atelier.android.feature.rooms.AddRoomScreen
 import com.atelier.android.feature.rooms.AddRoomViewModel
+import com.atelier.android.feature.rooms.HomeScreen
 import com.atelier.android.feature.rooms.RoomsScreen
 import com.atelier.android.feature.rooms.RoomsViewModel
+import com.atelier.android.feature.redesign.GeneratingScreen
+import com.atelier.android.feature.redesign.GeneratingViewModel
+import com.atelier.android.feature.redesign.ResultsScreen
+import com.atelier.android.feature.redesign.SummaryScreen
 import com.atelier.android.feature.styles.StyleSelectionScreen
 import com.atelier.android.feature.styles.StyleSelectionViewModel
-import com.atelier.android.feature.styles.SummaryPlaceholderScreen
 
 @Composable
 fun AtelierShell(
@@ -43,7 +48,7 @@ fun AtelierShell(
         val destination = when (sessionState) {
             SessionState.Loading -> AppDestination.Splash
             SessionState.Unauthenticated -> AppDestination.Landing
-            is SessionState.Authenticated -> AppDestination.Rooms
+            is SessionState.Authenticated -> AppDestination.Home
         }
         navController.navigate(destination.route) {
             popUpTo(navController.graph.startDestinationId) { inclusive = true }
@@ -84,7 +89,7 @@ fun AtelierShell(
             )
             RegisterScreen(registerViewModel)
         }
-        composable(AppDestination.Rooms.route) {
+        composable(AppDestination.Home.route) {
             val user = (sessionState as? SessionState.Authenticated)?.user
             val roomsViewModel: RoomsViewModel = viewModel(
                 factory = RoomsViewModel.Factory(
@@ -93,14 +98,44 @@ fun AtelierShell(
                     onLoggedOut = { shellViewModel.setUnauthenticated() },
                 ),
             )
-            RoomsScreen(
+            HomeScreen(
                 userName = user?.name.orEmpty(),
                 viewModel = roomsViewModel,
+                onAddRoom = { navController.navigate(AppDestination.AddRoom.route) },
+                onBrowseRooms = { navController.navigate(AppDestination.Rooms.route) },
+                onAccount = { navController.navigate(AppDestination.Account.route) },
+                onRoomSelected = { room ->
+                    shellViewModel.selectRoom(room)
+                    navController.navigate(AppDestination.StyleSelection.route)
+                },
+            )
+        }
+        composable(AppDestination.Rooms.route) {
+            val roomsViewModel: RoomsViewModel = viewModel(
+                factory = RoomsViewModel.Factory(
+                    roomsRepository = container.roomsRepository,
+                    authRepository = container.authRepository,
+                    onLoggedOut = { shellViewModel.setUnauthenticated() },
+                ),
+            )
+            RoomsScreen(
+                viewModel = roomsViewModel,
+                onHome = { navController.navigate(AppDestination.Home.route) },
+                onAccount = { navController.navigate(AppDestination.Account.route) },
                 onAddRoom = { navController.navigate(AppDestination.AddRoom.route) },
                 onRoomSelected = { room ->
                     shellViewModel.selectRoom(room)
                     navController.navigate(AppDestination.StyleSelection.route)
                 },
+            )
+        }
+        composable(AppDestination.Account.route) {
+            val user = (sessionState as? SessionState.Authenticated)?.user
+            AccountScreen(
+                userName = user?.name.orEmpty(),
+                onHome = { navController.navigate(AppDestination.Home.route) },
+                onRooms = { navController.navigate(AppDestination.Rooms.route) },
+                onLogout = { shellViewModel.logout() },
             )
         }
         composable(AppDestination.AddRoom.route) {
@@ -111,7 +146,7 @@ fun AtelierShell(
                     onRoomCreated = { room, uri ->
                         shellViewModel.selectRoom(room, uri?.toString())
                         navController.navigate(AppDestination.StyleSelection.route) {
-                            popUpTo(AppDestination.Rooms.route)
+                            popUpTo(AppDestination.Home.route)
                         }
                     },
                 ),
@@ -132,7 +167,36 @@ fun AtelierShell(
             )
         }
         composable(AppDestination.Summary.route) {
-            SummaryPlaceholderScreen(selectedRoomState = selectedRoomState)
+            SummaryScreen(
+                selectedRoomState = selectedRoomState,
+                onGenerate = { navController.navigate(AppDestination.Generating.route) },
+            )
+        }
+        composable(AppDestination.Generating.route) {
+            val generatingViewModel: GeneratingViewModel = viewModel(
+                factory = GeneratingViewModel.Factory(container.redesignRepository),
+            )
+            GeneratingScreen(
+                selectedRoomState = selectedRoomState,
+                viewModel = generatingViewModel,
+                onComplete = { redesign ->
+                    shellViewModel.completeGeneration(redesign)
+                    navController.navigate(AppDestination.Results.route) {
+                        popUpTo(AppDestination.Generating.route) { inclusive = true }
+                    }
+                },
+            )
+        }
+        composable(AppDestination.Results.route) {
+            ResultsScreen(
+                selectedRoomState = selectedRoomState,
+                onBackToHome = {
+                    navController.navigate(AppDestination.Home.route) {
+                        popUpTo(navController.graph.startDestinationId)
+                    }
+                },
+                onTryAnotherStyle = { navController.navigate(AppDestination.StyleSelection.route) },
+            )
         }
     }
 }

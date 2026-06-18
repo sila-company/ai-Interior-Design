@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.atelier.android.core.auth.AuthRepository
 import com.atelier.android.core.model.RoomDto
+import com.atelier.android.core.model.RedesignDto
 import com.atelier.android.core.model.StyleDto
 import com.atelier.android.core.model.UserDto
 import com.atelier.android.core.session.SelectedRoomState
@@ -55,12 +56,23 @@ class ShellViewModel(
         _sessionState.value = SessionState.Unauthenticated
     }
 
+    fun logout() {
+        viewModelScope.launch {
+            authRepository.logout()
+            setUnauthenticated()
+        }
+    }
+
     fun selectRoom(room: RoomDto, localImageUri: String? = null) {
         _selectedRoomState.value = SelectedRoomState(room = room, localImageUri = localImageUri)
     }
 
     fun selectStyle(style: StyleDto) {
-        _selectedRoomState.value = _selectedRoomState.value.copy(selectedStyle = style)
+        _selectedRoomState.value = _selectedRoomState.value.copy(selectedStyle = style, redesign = null)
+    }
+
+    fun completeGeneration(redesign: RedesignDto) {
+        _selectedRoomState.value = _selectedRoomState.value.copy(redesign = redesign)
     }
 
     class Factory(

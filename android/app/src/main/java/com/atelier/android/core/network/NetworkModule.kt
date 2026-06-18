@@ -14,6 +14,9 @@ object NetworkModule {
 
     fun okHttpClient(sessionStore: SessionStore, onSessionExpired: () -> Unit): OkHttpClient =
         OkHttpClient.Builder()
+            .connectTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+            .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+            .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
             .addInterceptor(AuthHeaderInterceptor(sessionStore))
             .addInterceptor(SessionResetInterceptor(sessionStore, onSessionExpired))
             .build()

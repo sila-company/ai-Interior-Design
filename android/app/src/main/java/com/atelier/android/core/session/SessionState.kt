@@ -19,10 +19,14 @@ enum class AppDestination(val route: String) {
     Landing("landing"),
     Login("login"),
     Register("register"),
+    Home("home"),
     Rooms("rooms"),
+    Account("account"),
     AddRoom("rooms/new"),
     StyleSelection("styles"),
     Summary("summary"),
+    Generating("generating"),
+    Results("results"),
 }
 
 interface SessionStore {

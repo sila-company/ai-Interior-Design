@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.atelier.android.feature.auth.AuthViewModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-16T03:58:33.533Z" hostname="DESKTOP-3MLASM6" time="0.019">
+<testsuite name="com.atelier.android.feature.auth.AuthViewModelsTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-16T06:11:19.304Z" hostname="DESKTOP-3MLASM6" time="0.029">
   <properties/>
-  <testcase name="loginSuccessRoutesAuthenticatedUser" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.013"/>
-  <testcase name="loginFailureMapsInlineError" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.003"/>
-  <testcase name="registerSuccessRoutesAuthenticatedUser" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.003"/>
+  <testcase name="loginSuccessRoutesAuthenticatedUser" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.019"/>
+  <testcase name="loginFailureMapsInlineError" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.004"/>
+  <testcase name="registerSuccessRoutesAuthenticatedUser" classname="com.atelier.android.feature.auth.AuthViewModelsTest" time="0.004"/>
   <system-out><![CDATA[]]></system-out>
   <system-err><![CDATA[]]></system-err>
 </testsuite>

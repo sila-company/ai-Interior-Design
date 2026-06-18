@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.atelier.android.feature.redesign.GeneratingViewModelTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-06-16T06:11:19.334Z" hostname="DESKTOP-3MLASM6" time="0.017">
+  <properties/>
+  <testcase name="clearCompletedRedesignRemovesCompletionPayload" classname="com.atelier.android.feature.redesign.GeneratingViewModelTest" time="0.011"/>
+  <testcase name="generateStoresSuccessfulRedesign" classname="com.atelier.android.feature.redesign.GeneratingViewModelTest" time="0.003"/>
+  <testcase name="generateMapsFailureToErrorState" classname="com.atelier.android.feature.redesign.GeneratingViewModelTest" time="0.003"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
