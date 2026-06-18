@@ -37,6 +37,10 @@ const REFERENCE_IMAGE_FETCH_TIMEOUT_MS = readPositiveIntegerEnv(
   "REFERENCE_IMAGE_FETCH_TIMEOUT_MS",
   8_000,
 );
+const MAX_INVENTORY_GENERATION_ATTEMPTS = readPositiveIntegerEnv(
+  "MAX_INVENTORY_GENERATION_ATTEMPTS",
+  1,
+);
 
 function readPositiveIntegerEnv(name: string, fallback: number): number {
   const raw = process.env[name];
@@ -64,11 +68,35 @@ function generationPriority(category: string): number {
 }
 
 function prioritizeProducts(products: RedesignProduct[]): RedesignProduct[] {
-  return [...products]
-    .sort(
-      (a, b) => generationPriority(a.category) - generationPriority(b.category),
-    )
-    .slice(0, MAX_REFERENCE_PRODUCTS);
+  const sorted = [...products].sort(
+    (a, b) => generationPriority(a.category) - generationPriority(b.category),
+  );
+  const selected: RedesignProduct[] = [];
+  const selectedCategories = new Set<string>();
+
+  for (const product of sorted) {
+    const category = product.category.toLowerCase();
+    if (selectedCategories.has(category)) continue;
+
+    selected.push(product);
+    selectedCategories.add(category);
+
+    if (selected.length >= MAX_REFERENCE_PRODUCTS) {
+      return selected;
+    }
+  }
+
+  for (const product of sorted) {
+    if (selected.some((item) => item.id === product.id)) continue;
+
+    selected.push(product);
+
+    if (selected.length >= MAX_REFERENCE_PRODUCTS) {
+      return selected;
+    }
+  }
+
+  return selected;
 }
 
 interface ReferencedProduct {
@@ -366,7 +394,7 @@ async function generateInventorySafeRedesign(
     throw new Error("No active inventory products are available for this room.");
   }
 
-  if (process.env.VERIFY_INVENTORY !== "true") {
+  if (process.env.VERIFY_INVENTORY === "false") {
     logger.info(
       {
         productCount: products.length,
@@ -379,7 +407,7 @@ async function generateInventorySafeRedesign(
 
   let lastFailure = "The generated image did not pass inventory verification.";
 
-  for (let attempt = 1; attempt <= 2; attempt += 1) {
+  for (let attempt = 1; attempt <= MAX_INVENTORY_GENERATION_ATTEMPTS; attempt += 1) {
     logger.info(
       {
         attempt,
@@ -480,6 +508,7 @@ function buildProductAwarePrompt(
   if (referenced.length > 0) {
     lines.push(
       "The remaining images are the EXACT products to place into the room. Reproduce each product faithfully: match the same color, material, shape, proportions, hardware, and design details shown in its reference photo. Scale each product to its stated real-world size.",
+      "Do not use the product reference images as loose inspiration. Treat them as the purchasable catalog items that must appear in the output.",
     );
     referenced.forEach((item, index) => {
       lines.push(`- Image ${index + 2}: ${describeProduct(item.product)}`);

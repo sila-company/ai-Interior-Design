@@ -25,9 +25,18 @@ struct GeneratingView: View {
 
             VStack(spacing: 28) {
                 VStack(spacing: 16) {
-                    ProgressView()
+                    Text("\(Int(generation.progress * 100))%")
+                        .font(.system(size: 34, weight: .semibold))
+                        .foregroundStyle(primaryText)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(.linear(duration: 0.25), value: generation.progress)
+
+                    ProgressView(value: generation.progress)
+                        .progressViewStyle(.linear)
                         .tint(appleBlue)
-                        .controlSize(.large)
+                        .frame(maxWidth: 280)
+                        .animation(.linear(duration: 0.25), value: generation.progress)
                 }
 
                 VStack(spacing: 10) {

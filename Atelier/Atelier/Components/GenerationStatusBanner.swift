@@ -48,6 +48,10 @@ struct GenerationStatusBanner: View {
                         .foregroundStyle(secondaryText)
                 }
 
+                ProgressView(value: generation.progress)
+                    .progressViewStyle(.linear)
+                    .tint(appleBlue)
+
                 Text("Tap to open progress")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundStyle(appleBlue)
@@ -62,7 +66,8 @@ struct GenerationStatusBanner: View {
     }
 
     private var subtitleText: String {
-        return "\(generation.styleName) · \(generation.statusMessage)"
+        let percent = Int(generation.progress * 100)
+        return "\(generation.styleName) · \(percent)% · \(generation.statusMessage)"
     }
 
     private var succeededBanner: some View {

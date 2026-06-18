@@ -24,6 +24,9 @@ final class RedesignGenerationStore {
     private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
     private var startedAt: Date?
 
+    /// Soft progress estimate only. The server does not expose exact generation progress.
+    private let estimatedDuration: TimeInterval = 70
+
     private let service = AtelierAPIService(redesignSession: APIConfiguration.redesignSession)
     private let statusMessages = [
         "Analyzing your room…",
@@ -204,6 +207,9 @@ final class RedesignGenerationStore {
             guard case .running = status else { return }
 
             let elapsed = Date().timeIntervalSince(startedAt)
+            let elapsedFraction = min(elapsed / estimatedDuration, 1)
+            // Keep the estimate below complete until the server actually returns the image.
+            let displayProgress = min(0.96, max(0.02, elapsedFraction * 0.96))
 
             let messageIndex: Int
             switch elapsed {
@@ -220,7 +226,7 @@ final class RedesignGenerationStore {
             }
 
             status = .running(
-                progress: 0,
+                progress: displayProgress,
                 message: statusMessages[messageIndex]
             )
         }

@@ -191,11 +191,15 @@ export async function verifyInventoryCompliance(
   const prompt = [
     "You are auditing an AI-generated interior design image for catalog compliance.",
     "The image is allowed to contain ONLY furniture, rugs, wall art, lighting, bedding, storage, and decor that clearly matches the inventory below.",
+    "A similar-looking alternative, generic placeholder, or made-up product is NOT compliant. It must visibly match a listed purchasable catalog item by category, color, material, silhouette, and key design details.",
     "Existing architecture such as walls, floors, windows, doors, ceiling, and built-in fixtures is allowed.",
     "Flag any visible movable furniture or decor that is not represented by the inventory list.",
+    "Also flag any listed inventory category that should be visible but is missing. The output should be sparse rather than contain unlisted filler.",
     "Return only valid JSON with this shape:",
     '{"passed": boolean, "confidence": number, "extraItems": string[], "missingInventoryCategories": string[], "reasoning": string}',
     "Set passed=false if the image contains unlisted furniture/decor, generic filler products, plants, pillows, throws, lamps, shelves, cabinets, art, tables, beds, chairs, sofas, rugs, or storage not in the inventory.",
+    "Set passed=false if any visible product appears to be inspired by the inventory but does not faithfully match a listed product.",
+    "Set passed=false if any listed product category is missing from the staged room.",
     "Inventory:",
     inventoryText,
   ].join("\n");
