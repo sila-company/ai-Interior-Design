@@ -153,7 +153,7 @@ struct ResultsView: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(primaryText)
 
-                Text("These real Amazon products were matched to your room style. Prices and availability may change.")
+                Text("These real products were selected for this redesign. Prices and availability may change.")
                     .font(.system(size: 14))
                     .foregroundStyle(secondaryText)
                     .fixedSize(horizontal: false, vertical: true)

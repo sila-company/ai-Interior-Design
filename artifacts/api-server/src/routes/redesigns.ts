@@ -30,7 +30,7 @@ const router: IRouter = Router();
 
 type RedesignProduct = InventoryProduct;
 
-const MAX_REFERENCE_PRODUCTS = readPositiveIntegerEnv("MAX_REFERENCE_PRODUCTS", 4);
+const MAX_REFERENCE_PRODUCTS = readPositiveIntegerEnv("MAX_REFERENCE_PRODUCTS", 3);
 const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024;
 const REFERENCE_IMAGE_FETCH_TIMEOUT_MS = readPositiveIntegerEnv(
   "REFERENCE_IMAGE_FETCH_TIMEOUT_MS",
@@ -478,6 +478,7 @@ function buildProductAwarePrompt(
     style.id === "custom"
       ? `Style direction from the homeowner: ${style.description}`
       : `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
+    "MANDATORY PRODUCT VISIBILITY: include every shoppable inventory product listed above in the final image. If a product is listed above, it must be clearly visible and recognizable in the room.",
     "SHOPPABLE FURNITURE RULE: every major furniture item must be one of the listed inventory products. Do not create, add, or substitute any unlisted sofa, sectional, chair, coffee table, side table, bed frame, dresser, nightstand, rug, wall art, cabinet, shelf, desk, dining table, or other major furniture item.",
     "Use these shoppable inventory products as the actual furniture in the design:",
     shoppableProducts,
@@ -485,7 +486,8 @@ function buildProductAwarePrompt(
     "VISUAL STAGING ALLOWANCE: you may add minor non-shoppable styling accessories only when they make the room feel realistic, such as neutral bedding, pillows, throws, books, bowls, small vases, small plants, candles, tabletop objects, and subtle wall styling. These accessories are decorative only and should not replace or obscure the listed inventory products.",
     "For bedrooms, a mattress, bedding, pillows, and blankets are allowed as staging around a listed bed frame. The bed frame itself must visibly match the listed inventory product.",
     "For living rooms, small pillows, throws, books, plants, and tabletop decor are allowed as staging. Sofas, chairs, tables, rugs, storage, and wall art must come from the listed inventory.",
-    "The final image should clearly feature the listed inventory furniture so users can shop those products. Do not make up alternate core furniture.",
+    "Do not include a shoppable inventory product in the design plan unless it appears in the final rendered room. The product list returned to the app is exactly what users will see under Shop this room.",
+    "The final image should clearly feature the listed inventory furniture so users can shop those exact products. Do not make up alternate core furniture.",
     "Photorealistic interior design photograph with natural lighting, realistic contact shadows, and matching perspective so the products look genuinely placed in the room.",
   );
 
