@@ -3,6 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
+    "dev": "pnpm --filter @workspace/api-server --filter @workspace/mockup-sandbox --parallel run dev",
     "preinstall": "node scripts/ensure-pnpm.mjs",
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "build:deploy": "pnpm install --frozen-lockfile && pnpm --filter @workspace/mockup-sandbox run build && pnpm --filter @workspace/api-server run build",

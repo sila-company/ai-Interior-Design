@@ -7,7 +7,12 @@ import { AuthImage } from "@/components/AuthImage";
 import { MobileNavBar } from "@/components/MobileNavBar";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAppFlow } from "@/context/AppFlowContext";
-import { deleteRedesign, getRoom, listDesignStyles, type Redesign } from "@/lib/api";
+import {
+  deleteRedesign,
+  getRoom,
+  listDesignStyles,
+  type Redesign,
+} from "@/lib/api";
 
 function RedesignCard({
   redesign,
@@ -32,7 +37,7 @@ function RedesignCard({
   });
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group relative overflow-hidden rounded-[20px] border border-black/[0.06] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]">
       <button type="button" onClick={onView} className="w-full text-left">
         <AuthImage
           src={redesign.resultImageUrl}
@@ -132,7 +137,7 @@ export function RoomDetailPage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col bg-[#F5F5F7]">
+    <div className="flex min-h-dvh flex-col">
       <MobileNavBar title={room.name} backTo="/rooms" />
 
       <PageFrame className="flex-1">
@@ -151,6 +156,11 @@ export function RoomDetailPage() {
                 {redesigns.length} saved redesign
                 {redesigns.length === 1 ? "" : "s"}
               </p>
+              {room.description ? (
+                <p className="mt-4 text-[15px] leading-6 text-[#6E6E73]">
+                  {room.description}
+                </p>
+              ) : null}
               <button
                 type="button"
                 onClick={() => beginNewRedesign(room)}
@@ -173,7 +183,9 @@ export function RoomDetailPage() {
                   <RedesignCard
                     key={redesign.id}
                     redesign={redesign}
-                    styleName={styleNames.get(redesign.styleId) ?? redesign.styleId}
+                    styleName={
+                      styleNames.get(redesign.styleId) ?? redesign.styleId
+                    }
                     roomId={room.id}
                     onView={() => viewSavedRedesign(room, redesign)}
                   />

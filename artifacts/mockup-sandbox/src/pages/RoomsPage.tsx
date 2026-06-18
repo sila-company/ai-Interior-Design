@@ -7,7 +7,13 @@ import { AuthImage } from "@/components/AuthImage";
 import { PageFrame, Surface } from "@/components/WebLayout";
 import { useAuth } from "@/context/AuthContext";
 import { useAppFlow } from "@/context/AppFlowContext";
-import { deleteRoom, listDesignStyles, listRedesigns, listRooms, type Room } from "@/lib/api";
+import {
+  deleteRoom,
+  listDesignStyles,
+  listRedesigns,
+  listRooms,
+  type Room,
+} from "@/lib/api";
 
 function formatRelativeDate(value: string): string {
   const date = new Date(value);
@@ -39,7 +45,7 @@ function RoomCard({
   });
 
   return (
-    <div className="group relative overflow-hidden rounded-lg border border-black/[0.06] bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group relative overflow-hidden rounded-[20px] border border-black/[0.06] bg-white shadow-[0_10px_24px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]">
       <button
         type="button"
         onClick={() => onOpen(room)}
@@ -145,16 +151,19 @@ export function RoomsPage() {
   const recentRedesigns = redesigns.slice(0, 6);
 
   return (
-    <div className="min-h-dvh bg-[#F5F5F7]">
+    <div className="min-h-dvh">
       <PageFrame>
-        <header className="mb-6 flex flex-col gap-5 rounded-lg border border-black/[0.06] bg-white p-5 shadow-sm lg:flex-row lg:items-center lg:justify-between">
+        <header className="mb-6 flex flex-col gap-5 rounded-[20px] border border-black/[0.06] bg-white p-5 shadow-[0_10px_30px_rgba(0,0,0,0.05)] lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none">
           <div>
             <p className="text-[13px] font-medium uppercase text-[#86868B]">
               Atelier
             </p>
-            <h1 className="mt-1 text-[34px] font-semibold text-[#1D1D1F]">
+            <h1 className="mt-1 text-[34px] font-semibold tracking-[-0.01em] text-[#1D1D1F]">
               Hi, {user.name.split(" ")[0]}
             </h1>
+            <p className="mt-1 text-[17px] text-[#6E6E73]">
+              Your rooms and AI redesigns, all in one place.
+            </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <Link
@@ -167,7 +176,7 @@ export function RoomsPage() {
             <button
               type="button"
               onClick={() => void logout()}
-              className="rounded-full bg-black/[0.04] px-5 py-3 text-[15px] text-[#1D1D1F]"
+              className="rounded-full bg-black/[0.04] px-5 py-3 text-[15px] text-[#1D1D1F] lg:hidden"
             >
               Sign out
             </button>
@@ -213,7 +222,7 @@ export function RoomsPage() {
                     key={redesign.id}
                     type="button"
                     onClick={() => viewSavedRedesign(room, redesign)}
-                    className="overflow-hidden rounded-lg border border-black/[0.06] bg-white text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                    className="overflow-hidden rounded-[18px] border border-black/[0.06] bg-white text-left shadow-[0_10px_24px_rgba(0,0,0,0.04)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]"
                   >
                     <AuthImage
                       src={redesign.resultImageUrl}
@@ -255,7 +264,7 @@ export function RoomsPage() {
               {Array.from({ length: 6 }).map((_, index) => (
                 <div
                   key={index}
-                  className="h-44 animate-pulse rounded-lg bg-white/80"
+                  className="h-44 animate-pulse rounded-[20px] bg-white/80"
                 />
               ))}
             </div>

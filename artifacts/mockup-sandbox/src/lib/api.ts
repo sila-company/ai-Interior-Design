@@ -14,6 +14,13 @@ export interface Room {
   originalImageUrl: string;
   createdAt: string;
   redesignCount: number;
+  description: string | null;
+  length: number | null;
+  width: number | null;
+  height: number | null;
+  dimensionUnit: "meters" | "feet" | null;
+  budgetAmount: number | null;
+  budgetCurrency: string;
 }
 
 export interface Redesign {
@@ -51,19 +58,21 @@ async function parseError(response: Response): Promise<string> {
   return `Request failed (${response.status})`;
 }
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
+const API_BASE =
+  (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? "";
 
-async function apiFetch<T>(
-  path: string,
-  init: RequestInit = {},
-): Promise<T> {
+async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers = new Headers(init.headers);
   const token = getAuthToken();
   if (token) {
     headers.set("Authorization", `Bearer ${token}`);
   }
 
-  if (init.body && !(init.body instanceof FormData) && !headers.has("Content-Type")) {
+  if (
+    init.body &&
+    !(init.body instanceof FormData) &&
+    !headers.has("Content-Type")
+  ) {
     headers.set("Content-Type", "application/json");
   }
 
@@ -141,7 +150,10 @@ async function compressImageFile(
   quality = 0.82,
 ): Promise<File> {
   const bitmap = await createImageBitmap(file);
-  const scale = Math.min(1, maxDimension / Math.max(bitmap.width, bitmap.height));
+  const scale = Math.min(
+    1,
+    maxDimension / Math.max(bitmap.width, bitmap.height),
+  );
   const width = Math.round(bitmap.width * scale);
   const height = Math.round(bitmap.height * scale);
   const canvas = document.createElement("canvas");
@@ -169,11 +181,42 @@ async function compressImageFile(
   return new File([blob], `${filename}.jpg`, { type: "image/jpeg" });
 }
 
-export async function createRoom(name: string, image: File): Promise<Room> {
+export interface CreateRoomInput {
+  name: string;
+  description?: string;
+  length?: string;
+  width?: string;
+  height?: string;
+  dimensionUnit?: "meters" | "feet";
+  budgetAmount?: string;
+  budgetCurrency?: string;
+}
+
+export async function createRoom(
+  input: CreateRoomInput,
+  image: File,
+): Promise<Room> {
   const compressed = await compressImageFile(image);
   const form = new FormData();
-  form.append("name", name);
+  form.append("name", input.name);
   form.append("image", compressed);
+
+  const optionalFields: Array<keyof CreateRoomInput> = [
+    "description",
+    "length",
+    "width",
+    "height",
+    "dimensionUnit",
+    "budgetAmount",
+    "budgetCurrency",
+  ];
+
+  for (const field of optionalFields) {
+    const value = input[field];
+    if (value) {
+      form.append(field, value);
+    }
+  }
 
   return apiFetch("/api/rooms", {
     method: "POST",

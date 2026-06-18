@@ -16,21 +16,21 @@ import {
 function categoryIcon(category: string): string {
   switch (category) {
     case "bed_frame":
-      return "🛏";
+      return "BD";
     case "nightstand":
     case "side_table":
-      return "🪔";
+      return "NS";
     case "coffee_table":
     case "dresser":
-      return "🪵";
+      return "TB";
     case "rug":
-      return "▭";
+      return "RG";
     case "wall_art":
-      return "🖼";
+      return "WA";
     case "accent_chair":
-      return "🪑";
+      return "CH";
     default:
-      return "📦";
+      return "PK";
   }
 }
 
@@ -49,7 +49,8 @@ function ProductCard({ product }: { product: ShoppableProduct }) {
           className="h-full w-full object-cover"
           onError={(e) => {
             (e.currentTarget as HTMLImageElement).style.display = "none";
-            const fallback = e.currentTarget.nextElementSibling as HTMLElement | null;
+            const fallback = e.currentTarget
+              .nextElementSibling as HTMLElement | null;
             if (fallback) fallback.style.display = "flex";
           }}
         />
@@ -79,7 +80,7 @@ function ProductCard({ product }: { product: ShoppableProduct }) {
           </span>
           {product.color && (
             <span className="truncate text-[13px] text-[#6E6E73]">
-              · {product.color}
+              - {product.color}
             </span>
           )}
         </div>

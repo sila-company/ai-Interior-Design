@@ -16,15 +16,15 @@ export function StyleCard({ style, isSelected, onSelect }: StyleCardProps) {
       type="button"
       onClick={onSelect}
       className={[
-        "w-full rounded-lg bg-white p-3 text-left transition-all duration-200",
+        "w-full rounded-[20px] bg-white p-3 text-left transition-all duration-200",
         isSelected
-          ? "scale-[1.01] border-2 border-[#0071E3] shadow-[0_6px_16px_rgba(0,0,0,0.10)]"
-          : "border border-black/[0.06] shadow-sm hover:-translate-y-0.5 hover:shadow-md",
+          ? "scale-[1.01] border-2 border-[#0071E3] shadow-[0_14px_30px_rgba(0,113,227,0.14)]"
+          : "border border-black/[0.06] shadow-[0_10px_24px_rgba(0,0,0,0.04)] hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(0,0,0,0.07)]",
       ].join(" ")}
     >
       <div className="relative mb-3">
         <div
-          className="flex h-[96px] items-center justify-center rounded-lg"
+          className="flex h-[96px] items-center justify-center rounded-[16px]"
           style={{
             background: `linear-gradient(135deg, ${style.gradient[0]}, ${style.gradient[1]})`,
           }}

@@ -29,7 +29,9 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
           password,
         })
           .catch((err: unknown) => {
-            setError(err instanceof Error ? err.message : "Something went wrong.");
+            setError(
+              err instanceof Error ? err.message : "Something went wrong.",
+            );
           })
           .finally(() => setIsSubmitting(false));
       }}
@@ -38,7 +40,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <label className="block">
           <span className="mb-2 block text-[14px] text-[#6E6E73]">Name</span>
           <input
-            className="w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
+            className="w-full rounded-[16px] border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none transition focus:border-[#0071E3] focus:ring-4 focus:ring-[#0071E3]/10"
             value={name}
             onChange={(event) => setName(event.target.value)}
             required
@@ -50,7 +52,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <span className="mb-2 block text-[14px] text-[#6E6E73]">Email</span>
         <input
           type="email"
-          className="w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
+          className="w-full rounded-[16px] border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none transition focus:border-[#0071E3] focus:ring-4 focus:ring-[#0071E3]/10"
           value={email}
           onChange={(event) => setEmail(event.target.value)}
           required
@@ -62,7 +64,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
         <input
           type="password"
           minLength={8}
-          className="w-full rounded-lg border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none focus:border-[#0071E3]"
+          className="w-full rounded-[16px] border border-black/[0.08] bg-white px-4 py-3 text-[16px] outline-none transition focus:border-[#0071E3] focus:ring-4 focus:ring-[#0071E3]/10"
           value={password}
           onChange={(event) => setPassword(event.target.value)}
           required
@@ -74,7 +76,7 @@ export function AuthForm({ mode, onSubmit }: AuthFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-full bg-[#0071E3] px-4 py-3.5 text-[15px] font-medium text-white disabled:opacity-60"
+        className="w-full rounded-full bg-[#0071E3] px-4 py-3.5 text-[15px] font-medium text-white shadow-[0_12px_28px_rgba(0,113,227,0.18)] transition disabled:opacity-60 disabled:shadow-none"
       >
         {isSubmitting
           ? "Please wait..."

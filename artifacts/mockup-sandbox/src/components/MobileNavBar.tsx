@@ -16,7 +16,7 @@ export function MobileNavBar({
 
   if (!showBack) {
     return (
-      <header className="sticky top-0 z-20 border-b border-black/5 bg-white/85 px-4 py-3 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-black/5 bg-white/85 px-4 py-3 backdrop-blur-xl lg:hidden">
         <h1 className="mx-auto max-w-7xl text-center text-[17px] font-semibold">
           {title}
         </h1>
@@ -25,7 +25,7 @@ export function MobileNavBar({
   }
 
   return (
-    <header className="sticky top-0 z-20 border-b border-black/5 bg-white/85 px-2 py-3 backdrop-blur-xl">
+    <header className="sticky top-0 z-20 border-b border-black/5 bg-white/85 px-2 py-3 backdrop-blur-xl lg:hidden">
       <div className="mx-auto flex max-w-7xl items-center">
         <button
           type="button"

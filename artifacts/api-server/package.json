@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsx watch src/index.ts",
-    "dev:bundle": "export NODE_ENV=development && pnpm run build && pnpm run start",
+    "dev": "node --env-file=../../.env --env-file=../../.env.local --env-file=../../.env.development.local ./node_modules/tsx/dist/cli.mjs watch src/index.ts",
+    "dev:bundle": "node --env-file=../../.env --env-file=../../.env.local --env-file=../../.env.development.local ./build.mjs && node --env-file=../../.env --env-file=../../.env.local --env-file=../../.env.development.local --enable-source-maps ./dist/index.mjs",
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit"
