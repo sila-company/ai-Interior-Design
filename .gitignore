@@ -58,6 +58,9 @@ Atelier/Atelier/Config/Secrets.plist
 # Uploaded room/redesign images
 artifacts/api-server/uploads/
 
+# Raw Apify catalog pulls
+data/apify-runs/
+
 # Xcode user-specific state
 **/xcuserdata/
 *.xcuserstate

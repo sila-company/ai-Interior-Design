@@ -39,7 +39,7 @@ struct ResultsView: View {
                         .frame(maxWidth: .infinity)
                 }
 
-                if !flow.selectedProducts.isEmpty {
+                if !displayedProducts.isEmpty {
                     shoppableProductsSection
                 }
 
@@ -136,6 +136,16 @@ struct ResultsView: View {
         !revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    private var displayedProducts: [ShoppableProduct] {
+        var seenCategories = Set<String>()
+        return flow.selectedProducts.filter { product in
+            let category = product.category.lowercased()
+            guard !seenCategories.contains(category) else { return false }
+            seenCategories.insert(category)
+            return true
+        }
+    }
+
     private var shoppableProductsSection: some View {
         VStack(alignment: .leading, spacing: 14) {
             VStack(alignment: .leading, spacing: 6) {
@@ -143,14 +153,14 @@ struct ResultsView: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(primaryText)
 
-                Text("These real Amazon products were matched to your room style. Prices and availability may change.")
+                Text("These real products were selected for this redesign. Prices and availability may change.")
                     .font(.system(size: 14))
                     .foregroundStyle(secondaryText)
                     .fixedSize(horizontal: false, vertical: true)
             }
 
             VStack(spacing: 12) {
-                ForEach(flow.selectedProducts) { product in
+                ForEach(displayedProducts) { product in
                     productCard(product)
                 }
             }
@@ -364,7 +374,7 @@ struct ResultsView: View {
     }
 
     private func reviseDesign() {
-        guard let room = flow.room, let style = flow.selectedStyle else { return }
+        guard let room = flow.room, flow.hasStyleChoice else { return }
 
         let instruction = revisionInstruction.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !instruction.isEmpty else { return }
@@ -376,7 +386,8 @@ struct ResultsView: View {
             do {
                 let result = try await AtelierAPIService().generateRedesign(
                     roomId: room.id,
-                    style: style,
+                    style: flow.selectedStyle,
+                    customStyleDescription: flow.customStyleDescription,
                     revisionInstruction: instruction
                 )
                 await MainActor.run {

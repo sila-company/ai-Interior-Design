@@ -8,6 +8,7 @@
     "build": "pnpm run typecheck && pnpm -r --if-present run build",
     "build:deploy": "pnpm install --frozen-lockfile && pnpm --filter @workspace/mockup-sandbox run build && pnpm --filter @workspace/api-server run build",
     "catalog:import-apify": "node scripts/import-apify-amazon-products.mjs",
+    "catalog:build-seed": "node scripts/build-product-seed-from-csv.mjs",
     "typecheck:libs": "tsc --build",
     "typecheck": "pnpm run typecheck:libs && pnpm -r --filter \"./artifacts/**\" --if-present run typecheck"
   },

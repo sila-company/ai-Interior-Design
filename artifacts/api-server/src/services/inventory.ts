@@ -27,8 +27,6 @@ export interface InventoryProduct {
   visualDescription?: string;
 }
 
-const PRODUCT_LIMIT = 12;
-
 const ROOM_CATEGORY_ALLOWLIST: Record<string, Set<string>> = {
   bedroom: new Set(["bed_frame", "nightstand", "dresser", "rug", "wall_art"]),
   living_room: new Set([
@@ -99,7 +97,7 @@ export async function selectInventoryProducts(
         (b.price ?? Number.MAX_SAFE_INTEGER);
     });
 
-  return ranked.slice(0, PRODUCT_LIMIT).map((product) => ({
+  return ranked.map((product) => ({
     id: product.id,
     roomType: product.roomType,
     category: product.category,

@@ -5,6 +5,8 @@ struct AtelierApp: App {
     @State private var flow = AppFlow()
     @State private var auth = AuthManager()
     @State private var dashboard = DashboardStore()
+    @State private var generation = RedesignGenerationStore()
+    @State private var subscription = SubscriptionManager()
 
     var body: some Scene {
         WindowGroup {
@@ -53,6 +55,18 @@ struct AtelierApp: App {
                             case .results:
                                 ResultsView()
                                     .hidesTabBarWhenPushed()
+                            case .membership:
+                                MembershipView()
+                                    .hidesTabBarWhenPushed()
+                            case .privacy:
+                                PrivacyPolicyView()
+                                    .hidesTabBarWhenPushed()
+                            case .terms:
+                                TermsOfUseView()
+                                    .hidesTabBarWhenPushed()
+                            case .support:
+                                SupportView()
+                                    .hidesTabBarWhenPushed()
                             }
                         }
                     }
@@ -61,11 +75,18 @@ struct AtelierApp: App {
             .environment(flow)
             .environment(auth)
             .environment(dashboard)
+            .environment(generation)
+            .environment(subscription)
             .onChange(of: auth.isAuthenticated) { _, isAuthenticated in
-                if !isAuthenticated {
+                if isAuthenticated {
+                    Task { await subscription.refresh() }
+                } else {
+                    subscription.reset()
+                    generation.reset()
                     flow.room = nil
                     flow.roomImage = nil
                     flow.selectedStyle = nil
+                    flow.customStyleDescription = nil
                     flow.selectedProducts = []
                     flow.redesignedImage = nil
                     flow.path = NavigationPath()

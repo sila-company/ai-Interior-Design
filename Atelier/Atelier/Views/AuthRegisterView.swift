@@ -54,6 +54,9 @@ struct AuthRegisterView: View {
                 .foregroundStyle(.white)
                 .background(Color(red: 0, green: 0.443, blue: 0.890), in: Capsule())
                 .disabled(isSubmitting)
+
+                LegalLinksFooter()
+                    .padding(.top, 8)
             }
             .padding(24)
         }

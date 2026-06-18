@@ -3,7 +3,9 @@ import { desc, eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
 import { getDb, redesigns, rooms } from "@workspace/db";
-import { buildRedesignPrompt, getStyleById } from "../data/styles";
+import { buildRedesignPrompt, customStyleDefinition, getStyleById } from "../data/styles";
+import { checkRedesignEntitlement } from "../lib/entitlement";
+import { logger } from "../lib/logger";
 import {
   buildRoomContextLines,
   roomPreferencesFromRecord,
@@ -12,7 +14,6 @@ import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
 import {
   generateRoomRedesign,
-  verifyInventoryCompliance,
   type ReferenceImage,
 } from "../services/openai";
 import {
@@ -30,8 +31,20 @@ const router: IRouter = Router();
 
 type RedesignProduct = InventoryProduct;
 
-const MAX_REFERENCE_PRODUCTS = 8;
+const MAX_REFERENCE_PRODUCTS = readPositiveIntegerEnv("MAX_REFERENCE_PRODUCTS", 3);
 const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024;
+const REFERENCE_IMAGE_FETCH_TIMEOUT_MS = readPositiveIntegerEnv(
+  "REFERENCE_IMAGE_FETCH_TIMEOUT_MS",
+  8_000,
+);
+
+function readPositiveIntegerEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 const GENERATION_CATEGORY_PRIORITY: Record<string, number> = {
   sofa: 0,
@@ -51,11 +64,35 @@ function generationPriority(category: string): number {
 }
 
 function prioritizeProducts(products: RedesignProduct[]): RedesignProduct[] {
-  return [...products]
-    .sort(
-      (a, b) => generationPriority(a.category) - generationPriority(b.category),
-    )
-    .slice(0, MAX_REFERENCE_PRODUCTS);
+  const sorted = [...products].sort(
+    (a, b) => generationPriority(a.category) - generationPriority(b.category),
+  );
+  const selected: RedesignProduct[] = [];
+  const selectedCategories = new Set<string>();
+
+  for (const product of sorted) {
+    const category = product.category.toLowerCase();
+    if (selectedCategories.has(category)) continue;
+
+    selected.push(product);
+    selectedCategories.add(category);
+
+    if (selected.length >= MAX_REFERENCE_PRODUCTS) {
+      return selected;
+    }
+  }
+
+  for (const product of sorted) {
+    if (selected.some((item) => item.id === product.id)) continue;
+
+    selected.push(product);
+
+    if (selected.length >= MAX_REFERENCE_PRODUCTS) {
+      return selected;
+    }
+  }
+
+  return selected;
 }
 
 interface ReferencedProduct {
@@ -68,7 +105,9 @@ async function fetchReferenceImage(
   index: number,
 ): Promise<ReferenceImage | null> {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(REFERENCE_IMAGE_FETCH_TIMEOUT_MS),
+    });
     if (!response.ok) return null;
 
     const contentType = response.headers.get("content-type") ?? "";
@@ -115,11 +154,33 @@ async function loadProductReferenceImages(
   return { referenced, textOnly };
 }
 
-const createRedesignBodySchema = z.object({
-  roomId: z.string().min(1),
-  styleId: z.string().min(1),
-  revisionInstruction: z.string().trim().max(800).optional(),
-});
+const createRedesignBodySchema = z
+  .object({
+    roomId: z.string().min(1),
+    styleId: z.string().min(1).optional(),
+    customStyleDescription: z.string().trim().min(3).max(500).optional(),
+    revisionInstruction: z.string().trim().max(800).optional(),
+  })
+  .superRefine((data, ctx) => {
+    const hasStyleId = Boolean(data.styleId);
+    const hasCustomStyle = Boolean(data.customStyleDescription);
+
+    if (!hasStyleId && !hasCustomStyle) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Either styleId or customStyleDescription is required.",
+        path: ["styleId"],
+      });
+    }
+
+    if (hasStyleId && hasCustomStyle) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Provide either styleId or customStyleDescription, not both.",
+        path: ["customStyleDescription"],
+      });
+    }
+  });
 
 const redesignProductSchema = z.object({
   id: z.string(),
@@ -212,12 +273,17 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
   const parsedBody = createRedesignBodySchema.safeParse(req.body);
   if (!parsedBody.success) {
     res.status(400).json(
-      errorResponseSchema.parse({ message: "roomId and styleId are required." }),
+      errorResponseSchema.parse({
+        message: "roomId and a style choice are required.",
+      }),
     );
     return;
   }
 
-  const style = getStyleById(parsedBody.data.styleId);
+  const style = parsedBody.data.customStyleDescription
+    ? customStyleDefinition(parsedBody.data.customStyleDescription)
+    : getStyleById(parsedBody.data.styleId!);
+
   if (!style) {
     res.status(400).json(
       errorResponseSchema.parse({
@@ -226,6 +292,8 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
     );
     return;
   }
+
+  const inventoryStyleId = style.id === "custom" ? "modern" : style.id;
 
   const db = getDb();
   const [room] = await db
@@ -239,17 +307,36 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
     return;
   }
 
+  const entitlement = await checkRedesignEntitlement(req.user!.id);
+  if (!entitlement.allowed) {
+    if (entitlement.code === "subscription_required") {
+      res.status(402).json({
+        message: entitlement.message,
+        code: "subscription_required",
+        freeRemaining: 0,
+      });
+      return;
+    }
+
+    res.status(429).json({
+      message: entitlement.message,
+      code: "daily_limit_reached",
+      freeRemaining: 0,
+    });
+    return;
+  }
+
   try {
     const originalBuffer = await readStoredImage(room.originalImagePath);
     const roomContext = buildRoomContextLines(roomPreferencesFromRecord(room));
-    const inventoryProducts = await selectInventoryProducts(room, style.id);
+    const inventoryProducts = await selectInventoryProducts(room, inventoryStyleId);
     const prioritizedProducts = prioritizeProducts(
       inventoryProducts,
     );
     const { referenced, textOnly } =
       await loadProductReferenceImages(prioritizedProducts);
     const referenceImages = referenced.map((item) => item.reference);
-    const redesigned = await generateInventorySafeRedesign(
+    const redesigned = await generateInventoryBasedRedesign(
       originalBuffer,
       buildProductAwarePrompt(
         style,
@@ -300,7 +387,6 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
       mimeType: created.mimeType,
       resultImageUrl: toPublicUploadUrl(created.resultImagePath),
       originalImageUrl: toPublicUploadUrl(room.originalImagePath),
-      imageBase64: redesigned.toString("base64"),
       products: prioritizedProducts,
       createdAt: created.createdAt.toISOString(),
     });
@@ -313,7 +399,7 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
   }
 });
 
-async function generateInventorySafeRedesign(
+async function generateInventoryBasedRedesign(
   originalBuffer: Buffer,
   prompt: string,
   products: RedesignProduct[],
@@ -323,48 +409,15 @@ async function generateInventorySafeRedesign(
     throw new Error("No active inventory products are available for this room.");
   }
 
-  if (process.env.VERIFY_INVENTORY === "false") {
-    return generateRoomRedesign(originalBuffer, prompt, referenceImages);
-  }
-
-  let lastFailure = "The generated image did not pass inventory verification.";
-
-  for (let attempt = 1; attempt <= 3; attempt += 1) {
-    const retryPrompt =
-      attempt === 1
-        ? prompt
-        : [
-            prompt,
-            "Previous attempt failed inventory compliance.",
-            `Failure reason: ${lastFailure}`,
-            "Regenerate the room with STRICTLY no extra furniture or decor beyond the listed inventory.",
-          ].join("\n");
-
-    const redesigned = await generateRoomRedesign(
-      originalBuffer,
-      retryPrompt,
-      referenceImages,
-    );
-    const verification = await verifyInventoryCompliance(redesigned, products);
-
-    if (verification.passed && verification.confidence >= 0.7) {
-      return redesigned;
-    }
-
-    const extraItems =
-      verification.extraItems.length > 0
-        ? ` Extra unlisted items: ${verification.extraItems.join(", ")}.`
-        : "";
-    const missing =
-      verification.missingInventoryCategories.length > 0
-        ? ` Missing inventory categories: ${verification.missingInventoryCategories.join(", ")}.`
-        : "";
-    lastFailure = `${verification.reasoning}${extraItems}${missing}`.trim();
-  }
-
-  throw new Error(
-    `Could not generate an inventory-safe redesign after 3 attempts. ${lastFailure}`,
+  logger.info(
+    {
+      productCount: products.length,
+      referenceImageCount: referenceImages.length,
+    },
+    "Generating redesign from selected inventory products",
   );
+
+  return generateRoomRedesign(originalBuffer, prompt, referenceImages);
 }
 
 function describeProduct(product: RedesignProduct): string {
@@ -405,6 +458,9 @@ function buildProductAwarePrompt(
   const allowedCategories = Array.from(
     new Set(allProducts.map((product) => product.category.toLowerCase())),
   ).join(", ");
+  const shoppableProducts = allProducts
+    .map((product) => `- ${product.category}: ${product.title}`)
+    .join("\n");
 
   const lines: string[] = [
     "Image 1 is a photograph of the actual room to redesign.",
@@ -422,6 +478,7 @@ function buildProductAwarePrompt(
   if (referenced.length > 0) {
     lines.push(
       "The remaining images are the EXACT products to place into the room. Reproduce each product faithfully: match the same color, material, shape, proportions, hardware, and design details shown in its reference photo. Scale each product to its stated real-world size.",
+      "Do not use the product reference images as loose inspiration. Treat them as the purchasable catalog items that must appear in the output.",
     );
     referenced.forEach((item, index) => {
       lines.push(`- Image ${index + 2}: ${describeProduct(item.product)}`);
@@ -438,11 +495,21 @@ function buildProductAwarePrompt(
   }
 
   lines.push(
-    `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
-    "INVENTORY LOCK: stage ONLY the exact products listed above. Do NOT create, add, or substitute any sofa, chair, table, rug, bed, dresser, nightstand, lamp, artwork, plant, pillow, throw, shelf, cabinet, or decor item that is not in this list.",
-    "Every visible movable object must correspond to one listed product. Avoid generic filler decor. Do not add plants, books, bowls, candles, pillows, blankets, lamps, shelves, or accessories unless they are explicitly listed above.",
-    `Allowed visible product categories: ${allowedCategories}. Do not show other product categories.`,
-    "If a normal interior design would need an item that is not listed, leave that area clean and empty rather than inventing an unlisted product. A sparse but accurate room is preferred over a full but inaccurate one.",
+    style.id === "custom"
+      ? `Style direction from the homeowner: ${style.description}`
+      : `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
+    "MANDATORY PRODUCT VISIBILITY: include every shoppable inventory product listed above in the final image. If a product is listed above, it must be clearly visible and recognizable in the room.",
+    "SHOPPABLE FURNITURE RULE: every major furniture item must be one of the listed inventory products. Do not create, add, or substitute any unlisted sofa, sectional, chair, coffee table, side table, bed frame, dresser, nightstand, rug, wall art, cabinet, shelf, desk, dining table, or other major furniture item.",
+    "Use these shoppable inventory products as the actual furniture in the design:",
+    shoppableProducts,
+    `Allowed shoppable product categories: ${allowedCategories}. Do not introduce other major furniture categories.`,
+    "QUANTITY RULE: use normal residential quantities unless the homeowner vision or revision explicitly asks for more. For a bedroom, default to exactly ONE bed. Do not add a second bed, twin beds, bunk beds, or extra bed frame unless the homeowner specifically asks for multiple beds, a shared room, guest beds, kids beds, twin beds, bunk beds, or similar wording.",
+    "For living rooms, default to one main seating area. Do not duplicate major sofas, sectionals, coffee tables, rugs, or media/storage pieces unless the homeowner explicitly asks for multiples.",
+    "VISUAL STAGING ALLOWANCE: you may add minor non-shoppable styling accessories only when they make the room feel realistic, such as neutral bedding, pillows, throws, books, bowls, small vases, small plants, candles, tabletop objects, and subtle wall styling. These accessories are decorative only and should not replace or obscure the listed inventory products.",
+    "For bedrooms, a mattress, bedding, pillows, and blankets are allowed as staging around a listed bed frame. The bed frame itself must visibly match the listed inventory product.",
+    "For living rooms, small pillows, throws, books, plants, and tabletop decor are allowed as staging. Sofas, chairs, tables, rugs, storage, and wall art must come from the listed inventory.",
+    "Do not include a shoppable inventory product in the design plan unless it appears in the final rendered room. The product list returned to the app is exactly what users will see under Shop this room.",
+    "The final image should clearly feature the listed inventory furniture so users can shop those exact products. Do not make up alternate core furniture.",
     "Photorealistic interior design photograph with natural lighting, realistic contact shadows, and matching perspective so the products look genuinely placed in the room.",
   );
 

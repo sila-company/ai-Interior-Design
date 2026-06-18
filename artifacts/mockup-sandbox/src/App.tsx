@@ -13,6 +13,9 @@ import { RoomDetailPage } from "@/pages/RoomDetailPage";
 import { RoomsPage } from "@/pages/RoomsPage";
 import { StyleSelectionPage } from "@/pages/StyleSelectionPage";
 import { SummaryPage } from "@/pages/SummaryPage";
+import { PrivacyPage } from "@/pages/PrivacyPage";
+import { SupportPage } from "@/pages/SupportPage";
+import { TermsPage } from "@/pages/TermsPage";
 
 export default function App() {
   return (
@@ -30,6 +33,9 @@ export default function App() {
             <Route path="/rooms/:roomId/summary" component={SummaryPage} />
             <Route path="/rooms/:roomId/generating" component={GeneratingPage} />
             <Route path="/rooms/:roomId/results" component={ResultsPage} />
+            <Route path="/privacy" component={PrivacyPage} />
+            <Route path="/terms" component={TermsPage} />
+            <Route path="/support" component={SupportPage} />
             <Route>
               <LandingPage />
             </Route>

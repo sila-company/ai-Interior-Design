@@ -3,8 +3,8 @@ import UIKit
 enum ImageProcessor {
     static func jpegDataForUpload(
         from image: UIImage,
-        maxDimension: CGFloat = 1536,
-        compressionQuality: CGFloat = 0.82
+        maxDimension: CGFloat = 1280,
+        compressionQuality: CGFloat = 0.72
     ) -> Data? {
         let resized = resize(image, maxDimension: maxDimension)
         return resized.jpegData(compressionQuality: compressionQuality)

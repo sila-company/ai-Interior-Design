@@ -77,4 +77,20 @@ struct DesignStyle: Identifiable, Equatable, Hashable {
             ]
         ),
     ]
+
+    static let customPlaceholder = DesignStyle(
+        id: "custom",
+        name: "Custom style",
+        description: "A style you described.",
+        icon: "text.quote",
+        gradient: [
+            Color(red: 0.94, green: 0.95, blue: 0.98),
+            Color(red: 0.82, green: 0.86, blue: 0.94),
+        ]
+    )
+
+    static func from(id: String) -> DesignStyle? {
+        if id == "custom" { return customPlaceholder }
+        return catalog.first { $0.id == id }
+    }
 }

@@ -1,4 +1,4 @@
-import { mkdir, writeFile, readFile } from "node:fs/promises";
+import { mkdir, writeFile, readFile, unlink } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -126,6 +126,34 @@ export async function readStoredImage(relativePath: string): Promise<Buffer> {
 
   const absolutePath = path.join(uploadsRoot, relativePath);
   return readFile(absolutePath);
+}
+
+export async function deleteStoredImage(relativePath: string): Promise<void> {
+  const objectName = toObjectName(relativePath);
+
+  if (hasVercelBlobConfig()) {
+    const { del } = await import("@vercel/blob");
+    await del(objectName);
+    return;
+  }
+
+  const client = await getObjectStorageClient();
+  if (client) {
+    const result = await client.delete(objectName);
+    if (!result.ok) {
+      throw new Error(`Could not delete image from App Storage: ${result.error.message}`);
+    }
+    return;
+  }
+
+  const absolutePath = path.join(uploadsRoot, relativePath);
+  try {
+    await unlink(absolutePath);
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+      throw error;
+    }
+  }
 }
 
 export function resolveUploadAbsolutePath(relativePath: string): string {
