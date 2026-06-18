@@ -13,7 +13,6 @@ import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
 import {
   generateRoomRedesign,
-  verifyInventoryCompliance,
   type ReferenceImage,
 } from "../services/openai";
 import {
@@ -36,10 +35,6 @@ const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024;
 const REFERENCE_IMAGE_FETCH_TIMEOUT_MS = readPositiveIntegerEnv(
   "REFERENCE_IMAGE_FETCH_TIMEOUT_MS",
   8_000,
-);
-const MAX_INVENTORY_GENERATION_ATTEMPTS = readPositiveIntegerEnv(
-  "MAX_INVENTORY_GENERATION_ATTEMPTS",
-  1,
 );
 
 function readPositiveIntegerEnv(name: string, fallback: number): number {
@@ -321,7 +316,7 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
     const { referenced, textOnly } =
       await loadProductReferenceImages(prioritizedProducts);
     const referenceImages = referenced.map((item) => item.reference);
-    const redesigned = await generateInventorySafeRedesign(
+    const redesigned = await generateInventoryBasedRedesign(
       originalBuffer,
       buildProductAwarePrompt(
         style,
@@ -384,7 +379,7 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
   }
 });
 
-async function generateInventorySafeRedesign(
+async function generateInventoryBasedRedesign(
   originalBuffer: Buffer,
   prompt: string,
   products: RedesignProduct[],
@@ -394,63 +389,15 @@ async function generateInventorySafeRedesign(
     throw new Error("No active inventory products are available for this room.");
   }
 
-  if (process.env.VERIFY_INVENTORY === "false") {
-    logger.info(
-      {
-        productCount: products.length,
-        referenceImageCount: referenceImages.length,
-      },
-      "Generating redesign without inventory verification",
-    );
-    return generateRoomRedesign(originalBuffer, prompt, referenceImages);
-  }
-
-  let lastFailure = "The generated image did not pass inventory verification.";
-
-  for (let attempt = 1; attempt <= MAX_INVENTORY_GENERATION_ATTEMPTS; attempt += 1) {
-    logger.info(
-      {
-        attempt,
-        productCount: products.length,
-        referenceImageCount: referenceImages.length,
-      },
-      "Generating inventory-verified redesign",
-    );
-    const retryPrompt =
-      attempt === 1
-        ? prompt
-        : [
-            prompt,
-            "Previous attempt failed inventory compliance.",
-            `Failure reason: ${lastFailure}`,
-            "Regenerate the room with STRICTLY no extra furniture or decor beyond the listed inventory.",
-          ].join("\n");
-
-    const redesigned = await generateRoomRedesign(
-      originalBuffer,
-      retryPrompt,
-      referenceImages,
-    );
-    const verification = await verifyInventoryCompliance(redesigned, products);
-
-    if (verification.passed && verification.confidence >= 0.7) {
-      return redesigned;
-    }
-
-    const extraItems =
-      verification.extraItems.length > 0
-        ? ` Extra unlisted items: ${verification.extraItems.join(", ")}.`
-        : "";
-    const missing =
-      verification.missingInventoryCategories.length > 0
-        ? ` Missing inventory categories: ${verification.missingInventoryCategories.join(", ")}.`
-        : "";
-    lastFailure = `${verification.reasoning}${extraItems}${missing}`.trim();
-  }
-
-  throw new Error(
-    `Could not generate an inventory-safe redesign after 2 attempts. ${lastFailure}`,
+  logger.info(
+    {
+      productCount: products.length,
+      referenceImageCount: referenceImages.length,
+    },
+    "Generating redesign from selected inventory products",
   );
+
+  return generateRoomRedesign(originalBuffer, prompt, referenceImages);
 }
 
 function describeProduct(product: RedesignProduct): string {
@@ -491,6 +438,9 @@ function buildProductAwarePrompt(
   const allowedCategories = Array.from(
     new Set(allProducts.map((product) => product.category.toLowerCase())),
   ).join(", ");
+  const shoppableProducts = allProducts
+    .map((product) => `- ${product.category}: ${product.title}`)
+    .join("\n");
 
   const lines: string[] = [
     "Image 1 is a photograph of the actual room to redesign.",
@@ -528,10 +478,14 @@ function buildProductAwarePrompt(
     style.id === "custom"
       ? `Style direction from the homeowner: ${style.description}`
       : `Arrange these products into a coherent ${style.name.toLowerCase()} layout. ${style.description}`,
-    "INVENTORY LOCK: stage ONLY the exact products listed above. Do NOT create, add, or substitute any sofa, chair, table, rug, bed, dresser, nightstand, lamp, artwork, plant, pillow, throw, shelf, cabinet, or decor item that is not in this list.",
-    "Every visible movable object must correspond to one listed product. Avoid generic filler decor. Do not add plants, books, bowls, candles, pillows, blankets, lamps, shelves, or accessories unless they are explicitly listed above.",
-    `Allowed visible product categories: ${allowedCategories}. Do not show other product categories.`,
-    "If a normal interior design would need an item that is not listed, leave that area clean and empty rather than inventing an unlisted product. A sparse but accurate room is preferred over a full but inaccurate one.",
+    "SHOPPABLE FURNITURE RULE: every major furniture item must be one of the listed inventory products. Do not create, add, or substitute any unlisted sofa, sectional, chair, coffee table, side table, bed frame, dresser, nightstand, rug, wall art, cabinet, shelf, desk, dining table, or other major furniture item.",
+    "Use these shoppable inventory products as the actual furniture in the design:",
+    shoppableProducts,
+    `Allowed shoppable product categories: ${allowedCategories}. Do not introduce other major furniture categories.`,
+    "VISUAL STAGING ALLOWANCE: you may add minor non-shoppable styling accessories only when they make the room feel realistic, such as neutral bedding, pillows, throws, books, bowls, small vases, small plants, candles, tabletop objects, and subtle wall styling. These accessories are decorative only and should not replace or obscure the listed inventory products.",
+    "For bedrooms, a mattress, bedding, pillows, and blankets are allowed as staging around a listed bed frame. The bed frame itself must visibly match the listed inventory product.",
+    "For living rooms, small pillows, throws, books, plants, and tabletop decor are allowed as staging. Sofas, chairs, tables, rugs, storage, and wall art must come from the listed inventory.",
+    "The final image should clearly feature the listed inventory furniture so users can shop those products. Do not make up alternate core furniture.",
     "Photorealistic interior design photograph with natural lighting, realistic contact shadows, and matching perspective so the products look genuinely placed in the room.",
   );
 
