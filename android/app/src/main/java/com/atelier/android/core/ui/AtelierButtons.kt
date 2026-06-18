@@ -46,7 +46,7 @@ fun PrimaryCapsuleButton(
                 strokeWidth = 2.dp,
             )
         } else {
-            Text(text, fontSize = 15.sp, fontWeight = FontWeight.Medium)
+            Text(text, color = Color.White, fontSize = 15.sp, fontWeight = FontWeight.Medium)
         }
     }
 }
