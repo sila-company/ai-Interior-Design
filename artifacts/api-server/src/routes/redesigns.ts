@@ -483,6 +483,8 @@ function buildProductAwarePrompt(
     "Use these shoppable inventory products as the actual furniture in the design:",
     shoppableProducts,
     `Allowed shoppable product categories: ${allowedCategories}. Do not introduce other major furniture categories.`,
+    "QUANTITY RULE: use normal residential quantities unless the homeowner vision or revision explicitly asks for more. For a bedroom, default to exactly ONE bed. Do not add a second bed, twin beds, bunk beds, or extra bed frame unless the homeowner specifically asks for multiple beds, a shared room, guest beds, kids beds, twin beds, bunk beds, or similar wording.",
+    "For living rooms, default to one main seating area. Do not duplicate major sofas, sectionals, coffee tables, rugs, or media/storage pieces unless the homeowner explicitly asks for multiples.",
     "VISUAL STAGING ALLOWANCE: you may add minor non-shoppable styling accessories only when they make the room feel realistic, such as neutral bedding, pillows, throws, books, bowls, small vases, small plants, candles, tabletop objects, and subtle wall styling. These accessories are decorative only and should not replace or obscure the listed inventory products.",
     "For bedrooms, a mattress, bedding, pillows, and blankets are allowed as staging around a listed bed frame. The bed frame itself must visibly match the listed inventory product.",
     "For living rooms, small pillows, throws, books, plants, and tabletop decor are allowed as staging. Sofas, chairs, tables, rugs, storage, and wall art must come from the listed inventory.",
