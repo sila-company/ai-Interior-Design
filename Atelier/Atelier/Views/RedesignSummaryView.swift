@@ -3,6 +3,9 @@ import SwiftUI
 struct RedesignSummaryView: View {
     @Environment(AppFlow.self) private var flow
     @Environment(RedesignGenerationStore.self) private var generation
+    @Environment(SubscriptionManager.self) private var subscription
+
+    @State private var showPaywall = false
 
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
     private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
@@ -156,8 +159,12 @@ struct RedesignSummaryView: View {
 
                 Button {
                     guard let room = flow.room, flow.hasStyleChoice else { return }
-                    generation.start(room: room, flow: flow)
-                    flow.showGenerating()
+                    if subscription.membershipStatus.canGenerate {
+                        generation.start(room: room, flow: flow)
+                        flow.showGenerating()
+                    } else {
+                        showPaywall = true
+                    }
                 } label: {
                     Text(generation.isActive ? "Generation in progress…" : "Generate redesign")
                         .font(.system(size: 15, weight: .medium))
@@ -175,6 +182,10 @@ struct RedesignSummaryView: View {
         .background(AppBackground())
         .navigationTitle("Summary")
         .navigationBarTitleDisplayMode(.inline)
+        .task { await subscription.refresh() }
+        .sheet(isPresented: $showPaywall) {
+            MembershipPaywallSheet()
+        }
     }
 
     @ViewBuilder

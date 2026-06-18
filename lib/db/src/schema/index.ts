@@ -16,6 +16,16 @@ export const users = pgTable("users", {
   email: varchar("email", { length: 320 }).notNull().unique(),
   passwordHash: text("password_hash").notNull(),
   name: varchar("name", { length: 120 }).notNull(),
+  subscriptionStatus: varchar("subscription_status", { length: 32 })
+    .default("none")
+    .notNull(),
+  subscriptionProductId: varchar("subscription_product_id", { length: 120 }),
+  subscriptionExpiresAt: timestamp("subscription_expires_at", {
+    withTimezone: true,
+  }),
+  appleOriginalTransactionId: varchar("apple_original_transaction_id", {
+    length: 64,
+  }).unique(),
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
     .notNull(),

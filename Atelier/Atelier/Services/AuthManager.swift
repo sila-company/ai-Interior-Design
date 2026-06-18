@@ -51,4 +51,10 @@ final class AuthManager {
         KeychainStore.clearToken()
         user = nil
     }
+
+    func deleteAccount() async throws {
+        try await api.deleteAccount()
+        KeychainStore.clearToken()
+        user = nil
+    }
 }

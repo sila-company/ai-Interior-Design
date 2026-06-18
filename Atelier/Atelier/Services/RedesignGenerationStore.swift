@@ -9,6 +9,7 @@ final class RedesignGenerationStore {
         case running(progress: Double, message: String)
         case succeeded
         case failed(String)
+        case subscriptionRequired
     }
 
     private(set) var status: Status = .idle
@@ -45,9 +46,14 @@ final class RedesignGenerationStore {
         switch status {
         case .idle:
             return false
-        case .running, .succeeded, .failed:
+        case .running, .succeeded, .failed, .subscriptionRequired:
             return isBackgrounded
         }
+    }
+
+    var needsSubscription: Bool {
+        if case .subscriptionRequired = status { return true }
+        return false
     }
 
     var progress: Double {
@@ -69,6 +75,8 @@ final class RedesignGenerationStore {
             return "Your redesign is ready!"
         case .failed(let message):
             return message
+        case .subscriptionRequired:
+            return "Subscribe to continue generating redesigns."
         case .idle:
             return ""
         }
@@ -123,6 +131,13 @@ final class RedesignGenerationStore {
             } catch is CancellationError {
                 endBackgroundExecution()
                 return
+            } catch let error as AtelierAPIServiceError where error.isSubscriptionRequired {
+                progressTask?.cancel()
+                await MainActor.run {
+                    status = .subscriptionRequired
+                    startedAt = nil
+                    endBackgroundExecution()
+                }
             } catch {
                 progressTask?.cancel()
                 await MainActor.run {
@@ -141,6 +156,13 @@ final class RedesignGenerationStore {
     }
 
     func moveToBackground(flow: AppFlow) {
+        if case .subscriptionRequired = status {
+            flow.selectedTab = .home
+            flow.path = NavigationPath()
+            reset()
+            return
+        }
+
         guard isActive else { return }
         isBackgrounded = true
         flow.selectedTab = .home
@@ -149,7 +171,7 @@ final class RedesignGenerationStore {
 
     func showGeneratingScreen(flow: AppFlow) {
         switch status {
-        case .running, .failed:
+        case .running, .failed, .subscriptionRequired:
             flow.path.append(AppRoute.generating)
             isBackgrounded = false
         default:

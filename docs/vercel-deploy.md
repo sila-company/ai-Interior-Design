@@ -28,6 +28,25 @@ DATABASE_URL=...
 BLOB_READ_WRITE_TOKEN=...
 ```
 
+### Membership (Apple In-App Purchase)
+
+Required for production subscription verification:
+
+```text
+APPLE_BUNDLE_ID=com.atelier.interiordesign
+APPLE_ISSUER_ID=...
+APPLE_KEY_ID=...
+APPLE_PRIVATE_KEY=...   # contents of App Store Connect .p8 key (PEM or base64)
+APPLE_ENVIRONMENT=Sandbox   # or Production
+```
+
+Optional generation limits (defaults shown):
+
+```text
+FREE_REDESIGN_LIMIT=2
+SUBSCRIBER_DAILY_CAP=50
+```
+
 Use Vercel Blob for `BLOB_READ_WRITE_TOKEN`; use Neon, Supabase, or another
 Postgres host for `DATABASE_URL`.
 

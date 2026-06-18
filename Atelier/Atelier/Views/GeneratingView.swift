@@ -4,19 +4,68 @@ struct GeneratingView: View {
     @Environment(AppFlow.self) private var flow
     @Environment(RedesignGenerationStore.self) private var generation
 
+    @State private var showPaywall = false
+
     private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
     private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
     private let secondaryText = Color(red: 0.431, green: 0.431, blue: 0.451)
 
     var body: some View {
         Group {
-            if case .failed = generation.status {
+            if generation.needsSubscription {
+                subscriptionRequiredView
+            } else if case .failed = generation.status {
                 errorView
             } else {
                 loadingView
             }
         }
         .navigationBarBackButtonHidden(generation.isActive)
+        .sheet(isPresented: $showPaywall) {
+            MembershipPaywallSheet()
+        }
+    }
+
+    private var subscriptionRequiredView: some View {
+        ZStack {
+            AppBackground()
+
+            VStack(spacing: 20) {
+                Image(systemName: "lock.circle")
+                    .font(.system(size: 36, weight: .light))
+                    .foregroundStyle(appleBlue)
+
+                Text("Membership required")
+                    .font(.system(size: 22, weight: .semibold))
+
+                Text("You've used your free redesigns. Subscribe for unlimited access.")
+                    .font(.system(size: 15))
+                    .foregroundStyle(secondaryText)
+                    .multilineTextAlignment(.center)
+
+                Button {
+                    showPaywall = true
+                } label: {
+                    Text("View membership")
+                        .font(.system(size: 15, weight: .medium))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(.white)
+                .background(appleBlue, in: Capsule())
+                .padding(.top, 8)
+
+                Button("Go to Home") {
+                    generation.moveToBackground(flow: flow)
+                }
+                .font(.system(size: 15, weight: .medium))
+                .foregroundStyle(appleBlue)
+            }
+            .padding(32)
+        }
+        .navigationTitle("Membership")
+        .navigationBarTitleDisplayMode(.inline)
     }
 
     private var loadingView: some View {
@@ -117,7 +166,11 @@ struct GeneratingView: View {
                     .multilineTextAlignment(.center)
 
                 Button {
-                    generation.retry(flow: flow)
+                    if generation.needsSubscription {
+                        showPaywall = true
+                    } else {
+                        generation.retry(flow: flow)
+                    }
                 } label: {
                     Text("Try again")
                         .font(.system(size: 15, weight: .medium))

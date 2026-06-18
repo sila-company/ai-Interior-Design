@@ -2,7 +2,8 @@ import { Router, type IRouter, type Response } from "express";
 import { eq } from "drizzle-orm";
 import { z } from "zod/v4";
 
-import { getDb, users } from "@workspace/db";
+import { getDb, redesigns, rooms, users } from "@workspace/db";
+import { getMembershipSnapshot } from "../lib/entitlement";
 import { hashPassword, verifyPassword } from "../lib/password";
 import { signAuthToken, TOKEN_COOKIE } from "../lib/tokens";
 import type { AuthenticatedRequest } from "../middlewares/auth";
@@ -20,6 +21,19 @@ const userSchema = z.object({
   id: z.string(),
   email: z.string(),
   name: z.string(),
+});
+
+const membershipSchema = z.object({
+  isActive: z.boolean(),
+  freeRemaining: z.number(),
+  expiresAt: z.string().nullable(),
+  redesignCount: z.number(),
+  productId: z.string().nullable(),
+});
+
+const meResponseSchema = z.object({
+  user: userSchema,
+  membership: membershipSchema,
 });
 
 function setAuthCookie(res: Response, token: string) {
@@ -122,8 +136,50 @@ router.post("/logout", (_req, res) => {
   res.status(204).send();
 });
 
-router.get("/me", requireAuth, (req: AuthenticatedRequest, res) => {
-  res.json({ user: userSchema.parse(req.user) });
+router.get("/me", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const membership = await getMembershipSnapshot(req.user!.id);
+  res.json(
+    meResponseSchema.parse({
+      user: userSchema.parse(req.user),
+      membership,
+    }),
+  );
+});
+
+router.delete("/me", requireAuth, async (req: AuthenticatedRequest, res) => {
+  const db = getDb();
+  const userId = req.user!.id;
+
+  const userRooms = await db
+    .select({
+      originalImagePath: rooms.originalImagePath,
+    })
+    .from(rooms)
+    .where(eq(rooms.userId, userId));
+
+  const userRedesigns = await db
+    .select({
+      resultImagePath: redesigns.resultImagePath,
+    })
+    .from(redesigns)
+    .where(eq(redesigns.userId, userId));
+
+  const imagePaths = [
+    ...userRooms.map((room) => room.originalImagePath),
+    ...userRedesigns.map((redesign) => redesign.resultImagePath),
+  ];
+
+  const { deleteStoredImage } = await import("../services/storage");
+  await Promise.allSettled(imagePaths.map((imagePath) => deleteStoredImage(imagePath)));
+
+  const [deleted] = await db.delete(users).where(eq(users.id, userId)).returning({ id: users.id });
+  if (!deleted) {
+    res.status(404).json({ message: "User not found." });
+    return;
+  }
+
+  res.clearCookie(TOKEN_COOKIE, { path: "/" });
+  res.status(204).send();
 });
 
 export default router;

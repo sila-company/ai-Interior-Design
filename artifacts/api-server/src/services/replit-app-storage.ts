@@ -71,4 +71,17 @@ export class ReplitAppStorageClient {
       };
     }
   }
+
+  async delete(objectName: string): Promise<StorageResult<null>> {
+    try {
+      const bucket = await this.bucketPromise;
+      await bucket.file(objectName).delete({ ignoreNotFound: true });
+      return { ok: true, value: null };
+    } catch (error) {
+      return {
+        ok: false,
+        error: { message: error instanceof Error ? error.message : String(error) },
+      };
+    }
+  }
 }

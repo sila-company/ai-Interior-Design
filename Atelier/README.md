@@ -18,12 +18,19 @@ Native SwiftUI iOS app for AI interior design.
 
 ## First-time signing
 
+**Important:** `DEVELOPMENT_TEAM` is intentionally left unset in the Xcode
+project. Each developer must choose their own Team locally — do not commit a
+team ID to the repository.
+
 If Xcode asks you to sign the app:
 
 1. Select the **Atelier** project in the navigator.
 2. Select the **Atelier** target → **Signing & Capabilities**.
 3. Check **Automatically manage signing**.
 4. Choose your **Team** (your Apple ID works for Simulator and device testing).
+
+For App Store distribution, use the Apple Developer team that owns
+`com.atelier.interiordesign` and enable **In-App Purchase** on the app ID.
 
 ## Project structure
 

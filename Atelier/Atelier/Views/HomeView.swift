@@ -4,8 +4,13 @@ struct HomeView: View {
     @Environment(AuthManager.self) private var auth
     @Environment(AppFlow.self) private var flow
     @Environment(DashboardStore.self) private var dashboard
+    @Environment(SubscriptionManager.self) private var subscription
 
     @State private var actionError: String?
+
+    private let appleBlue = Color(red: 0, green: 0.443, blue: 0.890)
+    private let primaryText = Color(red: 0.114, green: 0.114, blue: 0.122)
+    private let secondaryText = Color(red: 0.431, green: 0.431, blue: 0.451)
 
     private var firstName: String {
         auth.user?.name.split(separator: " ").first.map(String.init) ?? "there"
@@ -22,6 +27,9 @@ struct HomeView: View {
             ScrollView(showsIndicators: false) {
                 VStack(alignment: .leading, spacing: 24) {
                     header
+                    if showMembershipPromo {
+                        membershipPromoCard
+                    }
                     statsRow
                     addRoomButton
 
@@ -42,8 +50,66 @@ struct HomeView: View {
             }
         }
         .navigationBarHidden(true)
-        .task { await dashboard.refresh() }
-        .refreshable { await dashboard.refresh() }
+        .task {
+            await dashboard.refresh()
+            await subscription.refresh()
+        }
+        .refreshable {
+            await dashboard.refresh()
+            await subscription.refresh()
+        }
+    }
+
+    private var showMembershipPromo: Bool {
+        !subscription.membershipStatus.isActive
+    }
+
+    private var membershipPromoCard: some View {
+        Button {
+            flow.path.append(AppRoute.membership)
+        } label: {
+            HStack(spacing: 14) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 20))
+                    .foregroundStyle(appleBlue)
+                    .frame(width: 44, height: 44)
+                    .background(appleBlue.opacity(0.08), in: Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(membershipPromoTitle)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(primaryText)
+                    Text(membershipPromoSubtitle)
+                        .font(.system(size: 14))
+                        .foregroundStyle(secondaryText)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(secondaryText)
+            }
+            .padding(16)
+            .background(.white, in: RoundedRectangle(cornerRadius: 20, style: .continuous))
+        }
+        .buttonStyle(.plain)
+    }
+
+    private var membershipPromoTitle: String {
+        let status = subscription.membershipStatus
+        if status.freeRemaining > 0 {
+            return "\(status.freeRemaining) free redesign\(status.freeRemaining == 1 ? "" : "s") left"
+        }
+        return "Subscribe for unlimited redesigns"
+    }
+
+    private var membershipPromoSubtitle: String {
+        let status = subscription.membershipStatus
+        if status.freeRemaining > 0 {
+            return "Then \(subscription.displayPrice)/month for unlimited access"
+        }
+        return "Atelier Membership · \(subscription.displayPrice)/month"
     }
 
     private var header: some View {

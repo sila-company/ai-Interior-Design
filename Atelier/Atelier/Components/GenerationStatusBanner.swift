@@ -16,6 +16,8 @@ struct GenerationStatusBanner: View {
             succeededBanner
         case .failed(let message):
             failedBanner(message: message)
+        case .subscriptionRequired:
+            subscriptionRequiredBanner
         case .idle:
             EmptyView()
         }
@@ -106,6 +108,38 @@ struct GenerationStatusBanner: View {
         .padding(14)
         .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+    }
+
+    private var subscriptionRequiredBanner: some View {
+        Button {
+            flow.path.append(AppRoute.membership)
+        } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "lock.circle.fill")
+                    .foregroundStyle(appleBlue)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Membership required")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundStyle(primaryText)
+                    Text("Subscribe for unlimited redesigns")
+                        .font(.system(size: 13))
+                        .foregroundStyle(secondaryText)
+                }
+
+                Spacer()
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(secondaryText)
+            }
+            .padding(14)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+            .shadow(color: .black.opacity(0.08), radius: 12, y: 4)
+            .contentShape(RoundedRectangle(cornerRadius: 18, style: .continuous))
+        }
+        .buttonStyle(.plain)
     }
 
     private func failedBanner(message: String) -> some View {

@@ -6,6 +6,7 @@ enum AtelierAPIServiceError: LocalizedError {
     case invalidImage
     case invalidResponse
     case apiError(String)
+    case subscriptionRequired(freeRemaining: Int)
 
     var errorDescription: String? {
         switch self {
@@ -17,7 +18,14 @@ enum AtelierAPIServiceError: LocalizedError {
             return "Received an unexpected response from the Atelier API."
         case .apiError(let message):
             return message
+        case .subscriptionRequired:
+            return "Subscribe to Atelier Membership for unlimited redesigns."
         }
+    }
+
+    var isSubscriptionRequired: Bool {
+        if case .subscriptionRequired = self { return true }
+        return false
     }
 }
 
@@ -30,6 +38,14 @@ struct AuthUserResponse: Decodable {
     let id: String
     let email: String
     let name: String
+}
+
+struct MembershipStatusResponse: Decodable {
+    let isActive: Bool
+    let freeRemaining: Int
+    let expiresAt: String?
+    let redesignCount: Int
+    let productId: String?
 }
 
 struct RoomResponse: Decodable {
@@ -136,9 +152,45 @@ struct AtelierAPIService {
         )
     }
 
+    func fetchMembershipStatus() async throws -> MembershipStatus {
+        let response: MembershipStatusResponse = try await sendJSON(
+            path: "api/subscription/status",
+            method: "GET",
+            body: nil,
+            authorized: true,
+            decoder: MembershipStatusResponse.self
+        )
+        return mapMembershipStatus(response)
+    }
+
+    func syncSubscription(signedTransaction: String) async throws -> MembershipStatus {
+        let body = try JSONSerialization.data(withJSONObject: [
+            "signedTransaction": signedTransaction,
+        ])
+        let response: MembershipStatusResponse = try await sendJSON(
+            path: "api/subscription/sync",
+            method: "POST",
+            body: body,
+            authorized: true,
+            decoder: MembershipStatusResponse.self
+        )
+        return mapMembershipStatus(response)
+    }
+
+    func deleteAccount() async throws {
+        _ = try await sendJSON(
+            path: "api/auth/me",
+            method: "DELETE",
+            body: nil,
+            authorized: true,
+            decoder: EmptyResponse.self
+        )
+    }
+
     func fetchCurrentUser() async throws -> AuthUser {
         struct MeResponse: Decodable {
             let user: AuthUserResponse
+            let membership: MembershipStatusResponse?
         }
 
         let response: MeResponse = try await sendJSON(
@@ -355,6 +407,17 @@ struct AtelierAPIService {
         }
     }
 
+    private func mapMembershipStatus(_ response: MembershipStatusResponse) -> MembershipStatus {
+        let expiresAt = response.expiresAt.flatMap { ISO8601DateFormatter().date(from: $0) }
+        return MembershipStatus(
+            isActive: response.isActive,
+            freeRemaining: response.freeRemaining,
+            expiresAt: expiresAt,
+            redesignCount: response.redesignCount,
+            productId: response.productId
+        )
+    }
+
     private func mapProduct(_ product: ProductResponse) -> ShoppableProduct? {
         guard let affiliateURL = URL(string: product.affiliateUrl),
               let productURL = URL(string: product.productUrl),
@@ -523,7 +586,24 @@ struct AtelierAPIService {
             )
         }
 
+        if httpResponse.statusCode == 402 {
+            if let subscriptionError = try? JSONDecoder().decode(SubscriptionErrorResponse.self, from: data),
+               subscriptionError.code == "subscription_required" {
+                throw AtelierAPIServiceError.subscriptionRequired(
+                    freeRemaining: subscriptionError.freeRemaining ?? 0
+                )
+            }
+        }
+
         guard (200...299).contains(httpResponse.statusCode) else {
+            if httpResponse.statusCode == 402,
+               let subscriptionError = try? JSONDecoder().decode(SubscriptionErrorResponse.self, from: data),
+               subscriptionError.code == "subscription_required" {
+                throw AtelierAPIServiceError.subscriptionRequired(
+                    freeRemaining: subscriptionError.freeRemaining ?? 0
+                )
+            }
+
             if let apiError = try? JSONDecoder().decode(APIErrorResponse.self, from: data) {
                 throw AtelierAPIServiceError.apiError(apiError.message)
             }
@@ -545,6 +625,12 @@ struct AtelierAPIService {
 
 private struct APIErrorResponse: Decodable {
     let message: String
+}
+
+private struct SubscriptionErrorResponse: Decodable {
+    let message: String?
+    let code: String?
+    let freeRemaining: Int?
 }
 
 private struct EmptyResponse: Decodable {

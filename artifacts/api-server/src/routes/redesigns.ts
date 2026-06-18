@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 import { getDb, redesigns, rooms } from "@workspace/db";
 import { buildRedesignPrompt, customStyleDefinition, getStyleById } from "../data/styles";
+import { checkRedesignEntitlement } from "../lib/entitlement";
 import { logger } from "../lib/logger";
 import {
   buildRoomContextLines,
@@ -303,6 +304,25 @@ router.post("/", async (req: AuthenticatedRequest, res) => {
 
   if (!room || room.userId !== req.user!.id) {
     res.status(404).json(errorResponseSchema.parse({ message: "Room not found." }));
+    return;
+  }
+
+  const entitlement = await checkRedesignEntitlement(req.user!.id);
+  if (!entitlement.allowed) {
+    if (entitlement.code === "subscription_required") {
+      res.status(402).json({
+        message: entitlement.message,
+        code: "subscription_required",
+        freeRemaining: 0,
+      });
+      return;
+    }
+
+    res.status(429).json({
+      message: entitlement.message,
+      code: "daily_limit_reached",
+      freeRemaining: 0,
+    });
     return;
   }
 
