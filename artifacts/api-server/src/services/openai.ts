@@ -1,5 +1,24 @@
-const IMAGE_MODEL = "gpt-image-2";
+import { logger } from "../lib/logger";
+
+const IMAGE_MODEL = process.env["OPENAI_IMAGE_MODEL"] ?? "gpt-image-2";
+const IMAGE_QUALITY = process.env["OPENAI_IMAGE_QUALITY"] ?? "medium";
+const OPENAI_IMAGE_TIMEOUT_MS = readPositiveIntegerEnv(
+  "OPENAI_IMAGE_TIMEOUT_MS",
+  180_000,
+);
+const OPENAI_VERIFICATION_TIMEOUT_MS = readPositiveIntegerEnv(
+  "OPENAI_VERIFICATION_TIMEOUT_MS",
+  45_000,
+);
 const VERIFICATION_MODEL = process.env["OPENAI_VERIFICATION_MODEL"] ?? "gpt-5.5";
+
+function readPositiveIntegerEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 interface OpenAIImageResponse {
   data: Array<{
@@ -33,7 +52,7 @@ export async function generateRoomRedesign(
   const form = new FormData();
   form.append("model", IMAGE_MODEL);
   form.append("prompt", prompt);
-  form.append("quality", "high");
+  form.append("quality", IMAGE_QUALITY);
   form.append("size", "auto");
   form.append("output_format", "jpeg");
   form.append(
@@ -49,13 +68,37 @@ export async function generateRoomRedesign(
     );
   }
 
-  const response = await fetch("https://api.openai.com/v1/images/edits", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: form,
-  });
+  const startedAt = Date.now();
+  let response: Response;
+  try {
+    response = await fetch("https://api.openai.com/v1/images/edits", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: form,
+      signal: AbortSignal.timeout(OPENAI_IMAGE_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      throw new Error(
+        `OpenAI image edit timed out after ${Math.round(
+          OPENAI_IMAGE_TIMEOUT_MS / 1000,
+        )} seconds.`,
+      );
+    }
+    throw error;
+  } finally {
+    logger.info(
+      {
+        model: IMAGE_MODEL,
+        quality: IMAGE_QUALITY,
+        referenceImageCount: referenceImages.length,
+        responseTime: Date.now() - startedAt,
+      },
+      "OpenAI image edit completed",
+    );
+  }
 
   const rawBody = await response.text();
   let payload: OpenAIImageResponse | OpenAIErrorResponse;
@@ -157,25 +200,47 @@ export async function verifyInventoryCompliance(
     inventoryText,
   ].join("\n");
 
-  const response = await fetch("https://api.openai.com/v1/responses", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: VERIFICATION_MODEL,
-      input: [
-        {
-          role: "user",
-          content: [
-            { type: "input_text", text: prompt },
-            { type: "input_image", image_url: imageDataUrl },
-          ],
-        },
-      ],
-    }),
-  });
+  const startedAt = Date.now();
+  let response: Response;
+  try {
+    response = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: VERIFICATION_MODEL,
+        input: [
+          {
+            role: "user",
+            content: [
+              { type: "input_text", text: prompt },
+              { type: "input_image", image_url: imageDataUrl },
+            ],
+          },
+        ],
+      }),
+      signal: AbortSignal.timeout(OPENAI_VERIFICATION_TIMEOUT_MS),
+    });
+  } catch (error) {
+    if (error instanceof Error && error.name === "TimeoutError") {
+      throw new Error(
+        `OpenAI verification timed out after ${Math.round(
+          OPENAI_VERIFICATION_TIMEOUT_MS / 1000,
+        )} seconds.`,
+      );
+    }
+    throw error;
+  } finally {
+    logger.info(
+      {
+        model: VERIFICATION_MODEL,
+        responseTime: Date.now() - startedAt,
+      },
+      "OpenAI verification completed",
+    );
+  }
 
   const rawBody = await response.text();
   if (!response.ok) {

@@ -489,7 +489,7 @@ struct AtelierAPIService {
             (data, response) = try await activeSession.data(for: request)
         } catch let error as URLError where error.code == .timedOut {
             throw AtelierAPIServiceError.apiError(
-                "The redesign took too long to finish. Keep the app open and try again — complex rooms can take up to 10 minutes."
+                "The request took too long to finish. Check your connection and try again."
             )
         } catch {
             throw error

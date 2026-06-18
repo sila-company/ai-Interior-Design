@@ -4,6 +4,7 @@ import { z } from "zod/v4";
 
 import { getDb, redesigns, rooms } from "@workspace/db";
 import { buildRedesignPrompt, customStyleDefinition, getStyleById } from "../data/styles";
+import { logger } from "../lib/logger";
 import {
   buildRoomContextLines,
   roomPreferencesFromRecord,
@@ -30,8 +31,20 @@ const router: IRouter = Router();
 
 type RedesignProduct = InventoryProduct;
 
-const MAX_REFERENCE_PRODUCTS = 8;
+const MAX_REFERENCE_PRODUCTS = readPositiveIntegerEnv("MAX_REFERENCE_PRODUCTS", 4);
 const MAX_REFERENCE_IMAGE_BYTES = 8 * 1024 * 1024;
+const REFERENCE_IMAGE_FETCH_TIMEOUT_MS = readPositiveIntegerEnv(
+  "REFERENCE_IMAGE_FETCH_TIMEOUT_MS",
+  8_000,
+);
+
+function readPositiveIntegerEnv(name: string, fallback: number): number {
+  const raw = process.env[name];
+  if (!raw) return fallback;
+
+  const value = Number(raw);
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
 
 const GENERATION_CATEGORY_PRIORITY: Record<string, number> = {
   sofa: 0,
@@ -68,7 +81,9 @@ async function fetchReferenceImage(
   index: number,
 ): Promise<ReferenceImage | null> {
   try {
-    const response = await fetch(url);
+    const response = await fetch(url, {
+      signal: AbortSignal.timeout(REFERENCE_IMAGE_FETCH_TIMEOUT_MS),
+    });
     if (!response.ok) return null;
 
     const contentType = response.headers.get("content-type") ?? "";
@@ -351,13 +366,28 @@ async function generateInventorySafeRedesign(
     throw new Error("No active inventory products are available for this room.");
   }
 
-  if (process.env.VERIFY_INVENTORY === "false") {
+  if (process.env.VERIFY_INVENTORY !== "true") {
+    logger.info(
+      {
+        productCount: products.length,
+        referenceImageCount: referenceImages.length,
+      },
+      "Generating redesign without inventory verification",
+    );
     return generateRoomRedesign(originalBuffer, prompt, referenceImages);
   }
 
   let lastFailure = "The generated image did not pass inventory verification.";
 
   for (let attempt = 1; attempt <= 2; attempt += 1) {
+    logger.info(
+      {
+        attempt,
+        productCount: products.length,
+        referenceImageCount: referenceImages.length,
+      },
+      "Generating inventory-verified redesign",
+    );
     const retryPrompt =
       attempt === 1
         ? prompt

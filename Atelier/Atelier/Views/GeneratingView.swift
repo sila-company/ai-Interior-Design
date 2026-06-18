@@ -25,24 +25,9 @@ struct GeneratingView: View {
 
             VStack(spacing: 28) {
                 VStack(spacing: 16) {
-                    Text("\(Int(generation.progress * 100))%")
-                        .font(.system(size: 34, weight: .semibold))
-                        .foregroundStyle(primaryText)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(.linear(duration: 0.25), value: generation.progress)
-
-                    ProgressView(value: generation.progress)
-                        .progressViewStyle(.linear)
+                    ProgressView()
                         .tint(appleBlue)
-                        .frame(maxWidth: 280)
-                        .animation(.linear(duration: 0.25), value: generation.progress)
-
-                    if let remaining = generation.estimatedTimeRemainingText {
-                        Text(remaining)
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundStyle(secondaryText)
-                    }
+                        .controlSize(.large)
                 }
 
                 VStack(spacing: 10) {
@@ -94,7 +79,7 @@ struct GeneratingView: View {
                     .padding(.top, 8)
                     .frame(maxWidth: 280)
 
-                    Text("We'll keep working while you explore Home or your rooms. Most redesigns finish in about a minute.")
+                    Text("We'll keep working while you explore Home or your rooms.")
                         .font(.system(size: 13))
                         .foregroundStyle(secondaryText)
                         .multilineTextAlignment(.center)

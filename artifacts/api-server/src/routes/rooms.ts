@@ -4,6 +4,7 @@ import multer from "multer";
 import { z } from "zod/v4";
 
 import { getDb, redesigns, rooms } from "@workspace/db";
+import { logger } from "../lib/logger";
 import type { AuthenticatedRequest } from "../middlewares/auth";
 import { requireAuth } from "../middlewares/auth";
 import { ensureInventoryDatabase } from "../services/inventory";
@@ -101,6 +102,7 @@ router.get("/", async (req: AuthenticatedRequest, res) => {
 });
 
 router.post("/", upload.single("image"), async (req: AuthenticatedRequest, res) => {
+  const requestStartedAt = Date.now();
   const name = String(req.body.name ?? "").trim();
   if (!name) {
     res.status(400).json({ message: "Room name is required." });
@@ -112,16 +114,19 @@ router.post("/", upload.single("image"), async (req: AuthenticatedRequest, res) 
     return;
   }
 
+  const storageStartedAt = Date.now();
   const originalImagePath = await saveUserImage(
     req.user!.id,
     ["rooms"],
     req.file.buffer,
     "jpg",
   );
+  const storageTime = Date.now() - storageStartedAt;
 
   const preferences = parseRoomPreferences(req.body as Record<string, unknown>);
 
   const db = getDb();
+  const databaseStartedAt = Date.now();
   const [created] = await db
     .insert(rooms)
     .values({
@@ -137,11 +142,22 @@ router.post("/", upload.single("image"), async (req: AuthenticatedRequest, res) 
       budgetCurrency: preferences.budgetCurrency,
     })
     .returning();
+  const databaseTime = Date.now() - databaseStartedAt;
 
   if (!created) {
     res.status(500).json({ message: "Could not create room." });
     return;
   }
+
+  logger.info(
+    {
+      imageBytes: req.file.size,
+      storageTime,
+      databaseTime,
+      responseTime: Date.now() - requestStartedAt,
+    },
+    "room created",
+  );
 
   res.status(201).json(serializeRoom(created, 0));
 });

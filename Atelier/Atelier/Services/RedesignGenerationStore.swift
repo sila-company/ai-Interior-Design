@@ -24,16 +24,13 @@ final class RedesignGenerationStore {
     private var backgroundTaskID: UIBackgroundTaskIdentifier = .invalid
     private var startedAt: Date?
 
-    /// Typical redesign duration used to pace progress honestly.
-    private let estimatedDuration: TimeInterval = 72
-
     private let service = AtelierAPIService(redesignSession: APIConfiguration.redesignSession)
     private let statusMessages = [
         "Analyzing your room…",
         "Matching shoppable products…",
         "Staging only inventory items…",
-        "Checking product accuracy…",
-        "Almost there…",
+        "Rendering the final image…",
+        "Waiting for the finished redesign…",
     ]
 
     var isActive: Bool {
@@ -72,20 +69,6 @@ final class RedesignGenerationStore {
         case .idle:
             return ""
         }
-    }
-
-    var estimatedTimeRemainingText: String? {
-        guard case .running = status, let startedAt else { return nil }
-
-        let elapsed = Date().timeIntervalSince(startedAt)
-        let remaining = max(estimatedDuration - elapsed, 0)
-
-        if remaining < 15 {
-            return "Finishing up…"
-        }
-
-        let seconds = Int(ceil(remaining))
-        return "About \(seconds)s left"
     }
 
     func start(room: SavedRoom, flow: AppFlow) {
@@ -221,26 +204,23 @@ final class RedesignGenerationStore {
             guard case .running = status else { return }
 
             let elapsed = Date().timeIntervalSince(startedAt)
-            let elapsedFraction = min(elapsed / estimatedDuration, 1)
-            // Hold below 100% until the server actually responds.
-            let displayProgress = min(elapsedFraction * 0.92, 0.92)
 
             let messageIndex: Int
-            switch elapsedFraction {
-            case 0..<0.18:
+            switch elapsed {
+            case 0..<8:
                 messageIndex = 0
-            case 0.18..<0.4:
+            case 8..<20:
                 messageIndex = 1
-            case 0.4..<0.62:
+            case 20..<45:
                 messageIndex = 2
-            case 0.62..<0.82:
+            case 45..<90:
                 messageIndex = 3
             default:
                 messageIndex = 4
             }
 
             status = .running(
-                progress: max(0.02, displayProgress),
+                progress: 0,
                 message: statusMessages[messageIndex]
             )
         }
