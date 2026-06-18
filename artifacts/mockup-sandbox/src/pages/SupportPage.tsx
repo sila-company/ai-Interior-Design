@@ -1,8 +1,7 @@
 import { Link } from "wouter";
 
 import { LegalPageLayout } from "@/components/LegalPageLayout";
-
-const SUPPORT_EMAIL = "support@ateliertech.vercel.app";
+import { SUPPORT_EMAIL } from "@/lib/legal";
 
 export function SupportPage() {
   return (
@@ -17,8 +16,8 @@ export function SupportPage() {
         Email: <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a>
       </p>
       <p>
-        We typically respond within 2 business days. Include your account email
-        and a description of the issue.
+        We typically respond within 2 business days. Include your account email and
+        a description of the issue.
       </p>
 
       <h2>Common topics</h2>
@@ -36,34 +35,30 @@ export function SupportPage() {
         membership screen to sync your subscription.
       </p>
       <p>
-        See our <Link href="/terms">Terms of Use</Link> for full subscription
-        details.
+        <Link href="/terms">Read Terms of Use</Link>
       </p>
 
-      <h3>Free redesigns</h3>
+      <h2>Free redesigns</h2>
       <p>
-        New accounts include a limited number of free AI redesigns. After that,
-        an active Atelier Membership is required for additional generations.
+        New accounts include a limited number of free AI redesigns. After that, an
+        active Atelier Membership is required for additional generations.
       </p>
 
-      <h3>Account deletion</h3>
+      <h2>Account deletion</h2>
       <p>
-        You can delete your account from the Account tab in the app. This
-        removes your rooms, photos, and redesign history from our servers.
-      </p>
-      <p>
-        <strong>Important:</strong> Deleting your Atelier account does not
-        cancel your Apple subscription. Cancel separately in Apple ID settings.
+        You can delete your account from the Account tab in the app. This removes
+        your rooms, photos, and redesign history from our servers. Deleting your
+        Atelier account does not cancel your Apple subscription.
       </p>
 
-      <h3>AI redesign issues</h3>
+      <h2>AI redesign issues</h2>
       <p>
-        AI results are visual suggestions and may not match real-world
-        dimensions or materials. If a generation fails or looks wrong, try
-        another style or a clearer, well-lit room photo.
+        AI results are visual suggestions and may not match real-world dimensions or
+        materials. If a generation fails or looks wrong, try another style or a
+        clearer, well-lit room photo.
       </p>
 
-      <h3>Privacy and data</h3>
+      <h2>Privacy and data</h2>
       <p>
         Read our <Link href="/privacy">Privacy Policy</Link> for details on data
         we collect (email, name, photos), OpenAI processing, Vercel hosting, and
@@ -71,14 +66,12 @@ export function SupportPage() {
       </p>
 
       <h2>Legal</h2>
-      <ul>
-        <li>
-          <Link href="/privacy">Privacy Policy</Link>
-        </li>
-        <li>
-          <Link href="/terms">Terms of Use</Link>
-        </li>
-      </ul>
+      <p>
+        <Link href="/privacy">Privacy Policy</Link>
+      </p>
+      <p>
+        <Link href="/terms">Terms of Use</Link>
+      </p>
     </LegalPageLayout>
   );
 }
