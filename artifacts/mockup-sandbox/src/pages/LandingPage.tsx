@@ -1,6 +1,8 @@
 import { Camera, Globe, Palette, Sparkles } from "lucide-react";
 import { Link, Redirect } from "wouter";
 
+import appStoreBadgeUrl from "@/assets/app-store-badge.svg";
+import googlePlayBadgeUrl from "@/assets/google-play-badge.svg";
 import { useAuth } from "@/context/AuthContext";
 
 function AppStoreBadge({ className = "" }: { className?: string }) {
@@ -8,19 +10,14 @@ function AppStoreBadge({ className = "" }: { className?: string }) {
     <a
       href="#"
       aria-label="Download on the App Store"
-      className={`inline-flex cursor-pointer items-center gap-2.5 rounded-[10px] bg-[#1D1D1F] px-4 py-2.5 text-white transition-opacity duration-200 hover:opacity-75 ${className}`}
+      className={`inline-flex h-10 cursor-pointer items-center rounded-[7px] transition-opacity duration-200 hover:opacity-80 ${className}`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5 shrink-0 fill-white"
+      <img
+        src={appStoreBadgeUrl}
+        alt=""
+        className="h-10 w-auto"
         aria-hidden="true"
-      >
-        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z" />
-      </svg>
-      <div className="text-left leading-none">
-        <div className="mb-0.5 text-[9px] opacity-70">Download on the</div>
-        <div className="text-[14px] font-semibold">App Store</div>
-      </div>
+      />
     </a>
   );
 }
@@ -30,34 +27,14 @@ function PlayStoreBadge({ className = "" }: { className?: string }) {
     <a
       href="#"
       aria-label="Get it on Google Play"
-      className={`inline-flex cursor-pointer items-center gap-2.5 rounded-[10px] bg-[#1D1D1F] px-4 py-2.5 text-white transition-opacity duration-200 hover:opacity-75 ${className}`}
+      className={`inline-flex h-10 cursor-pointer items-center rounded-[7px] transition-opacity duration-200 hover:opacity-80 ${className}`}
     >
-      <svg
-        viewBox="0 0 24 24"
-        className="h-5 w-5 shrink-0"
+      <img
+        src={googlePlayBadgeUrl}
+        alt=""
+        className="h-10 w-auto"
         aria-hidden="true"
-      >
-        <path
-          fill="#EA4335"
-          d="M5.13 3.13L15.4 10 12.26 13.14 3.27 4.07A2 2 0 0 1 5.13 3.13z"
-        />
-        <path
-          fill="#FBBC05"
-          d="M20.13 9.23a2 2 0 0 1 0 3.54l-2.95 1.67-3.48-3.44 3.48-3.44 2.95 1.67z"
-        />
-        <path
-          fill="#34A853"
-          d="M5.13 20.87a2 2 0 0 1-1.86-.94l9-9.06 3.14 3.14-10.28 6.86z"
-        />
-        <path
-          fill="#4285F4"
-          d="M3.27 4.07L12.26 13l-9 9.06a2 2 0 0 1-.26-.93V5.13c0-.38.1-.73.27-1.06z"
-        />
-      </svg>
-      <div className="text-left leading-none">
-        <div className="mb-0.5 text-[9px] opacity-70">Get it on</div>
-        <div className="text-[14px] font-semibold">Google Play</div>
-      </div>
+      />
     </a>
   );
 }
@@ -326,8 +303,9 @@ export function LandingPage() {
             Atelier
           </span>
           <div className="flex items-center gap-2">
-            <div className="hidden origin-right scale-90 sm:block">
+            <div className="hidden origin-right scale-90 items-center gap-2 lg:flex">
               <AppStoreBadge />
+              <PlayStoreBadge />
             </div>
             <Link
               href="/login"
@@ -542,15 +520,19 @@ export function LandingPage() {
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
               href="/register"
-              className="inline-flex cursor-pointer items-center gap-2.5 rounded-[10px] border border-white/[0.12] bg-white/[0.08] px-5 py-3 text-white transition-colors duration-150 hover:bg-white/[0.13]"
+              className="inline-flex h-10 w-[128px] cursor-pointer items-center gap-2 rounded-[7px] border border-white/[0.18] bg-white/[0.08] px-3 text-white transition-colors duration-150 hover:bg-white/[0.13]"
             >
               <Globe
                 className="h-5 w-5 shrink-0 text-white"
                 aria-hidden="true"
               />
               <div className="text-left leading-none">
-                <div className="mb-0.5 text-[9px] opacity-60">Use in your</div>
-                <div className="text-[14px] font-semibold">Browser</div>
+                <div className="text-[8px] font-medium leading-none opacity-70">
+                  Use in your
+                </div>
+                <div className="mt-0.5 text-[16px] font-medium leading-[0.95]">
+                  Browser
+                </div>
               </div>
             </Link>
 
